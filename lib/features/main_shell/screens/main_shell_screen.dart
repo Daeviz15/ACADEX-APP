@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:acadex/config/theme/app_colors.dart';
+import '../providers/shell_provider.dart';
 import '../widgets/curved_bottom_nav_bar.dart';
 
 // Import our 5 tab screens
@@ -9,16 +11,14 @@ import '../../past_questions/screens/pq_search_screen.dart';
 import '../../quiz/screens/quiz_lobby_screen.dart';
 import '../../wallet/screens/wallet_screen.dart';
 
-class MainShellScreen extends StatefulWidget {
+class MainShellScreen extends ConsumerStatefulWidget {
   const MainShellScreen({super.key});
 
   @override
-  State<MainShellScreen> createState() => _MainShellScreenState();
+  ConsumerState<MainShellScreen> createState() => _MainShellScreenState();
 }
 
-class _MainShellScreenState extends State<MainShellScreen> {
-  int _currentIndex = 0;
-
+class _MainShellScreenState extends ConsumerState<MainShellScreen> {
   final List<Widget> _screens = [
     const DashboardScreen(),
     const AiChatScreen(),
@@ -29,19 +29,19 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currentIndex = ref.watch(shellProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: IndexedStack(
-        index: _currentIndex,
+        index: currentIndex,
         children: _screens,
       ),
       // We align the custom nav bar to the bottom exactly.
       bottomNavigationBar: CurvedBottomNavBar(
-        selectedIndex: _currentIndex,
+        selectedIndex: currentIndex,
         onItemSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+          ref.read(shellProvider.notifier).state = index;
         },
       ),
     );

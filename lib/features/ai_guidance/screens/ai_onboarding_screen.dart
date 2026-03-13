@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:acadex/config/theme/app_colors.dart';
+
 import 'package:acadex/config/theme/app_text_styles.dart';
 import '../providers/ai_onboarding_provider.dart';
 
@@ -209,7 +209,8 @@ class _AiOnboardingScreenState extends ConsumerState<AiOnboardingScreen> {
                               children: [
                                 Text(
                                   _currentPage == 2 ? 'Get Started' : 'Continue',
-                                  style: GoogleFonts.montserrat(
+                                  style: const TextStyle(
+                                    fontFamily: AppTextStyles.montserrat,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -338,7 +339,8 @@ class _AiOnboardingPage1 extends StatelessWidget {
           Text(
             'Meet Your AI',
             textAlign: TextAlign.center,
-            style: GoogleFonts.montserrat(
+            style: const TextStyle(
+              fontFamily: AppTextStyles.montserrat,
               fontSize: 30,
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
@@ -357,7 +359,8 @@ class _AiOnboardingPage1 extends StatelessWidget {
             child: Text(
               'Study Companion',
               textAlign: TextAlign.center,
-              style: GoogleFonts.montserrat(
+              style: const TextStyle(
+                fontFamily: AppTextStyles.montserrat,
                 fontSize: 30,
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
@@ -405,7 +408,8 @@ class _AiOnboardingPage1 extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: GoogleFonts.montserrat(
+        style:  TextStyle(
+          fontFamily: AppTextStyles.montserrat,
           fontSize: 13,
           fontWeight: FontWeight.w700,
           color: textColor,
@@ -515,7 +519,8 @@ class _AiOnboardingPage2 extends StatelessWidget {
           Text(
             'Chat Smarter,',
             textAlign: TextAlign.center,
-            style: GoogleFonts.montserrat(
+            style: const TextStyle(
+              fontFamily: AppTextStyles.montserrat,
               fontSize: 30,
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
@@ -533,7 +538,8 @@ class _AiOnboardingPage2 extends StatelessWidget {
             child: Text(
               'Study Better',
               textAlign: TextAlign.center,
-              style: GoogleFonts.montserrat(
+              style: const TextStyle(
+                fontFamily: AppTextStyles.montserrat,
                 fontSize: 30,
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
@@ -596,7 +602,8 @@ class _AiOnboardingPage2 extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     label,
-                    style: GoogleFonts.montserrat(
+                    style: const TextStyle(
+                      fontFamily: AppTextStyles.montserrat,
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       color: Colors.black,
@@ -709,7 +716,8 @@ class _AiOnboardingPage3 extends StatelessWidget {
           Text(
             'Your Academic',
             textAlign: TextAlign.center,
-            style: GoogleFonts.montserrat(
+            style: const TextStyle(
+              fontFamily: AppTextStyles.montserrat,
               fontSize: 30,
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
@@ -727,7 +735,8 @@ class _AiOnboardingPage3 extends StatelessWidget {
             child: Text(
               'Superpowers',
               textAlign: TextAlign.center,
-              style: GoogleFonts.montserrat(
+              style: const TextStyle(
+                fontFamily: AppTextStyles.montserrat,
                 fontSize: 30,
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
@@ -794,7 +803,8 @@ class _AiOnboardingPage3 extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: GoogleFonts.montserrat(
+              style: const TextStyle(
+                fontFamily: AppTextStyles.montserrat,
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,

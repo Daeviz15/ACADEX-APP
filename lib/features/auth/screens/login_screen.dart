@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import 'package:acadex/config/theme/app_colors.dart';
 import 'package:acadex/config/theme/app_text_styles.dart';
 import 'package:acadex/core/widgets/custom_button.dart';
 import 'package:acadex/core/widgets/custom_text_field.dart';
@@ -81,7 +79,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 16),
                   Text(
                     'Sign In',
-                    style: GoogleFonts.montserrat(
+                    style: const TextStyle(
+                      fontFamily: AppTextStyles.montserrat,
                       fontSize: 40,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
@@ -107,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Container(
                 width: double.infinity,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFE8E8E8), // Slightly lighter grey
+                  color: Color(0xFFF5F5F5), // Even whiter as requested
                   borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
                 ),
                 child: SingleChildScrollView(

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:acadex/config/theme/app_colors.dart';
 import 'package:acadex/config/theme/app_text_styles.dart';
 
@@ -91,10 +90,10 @@ class OnboardingPage extends StatelessWidget {
                   children: [
                     const SizedBox(height: 8),
 
-                    // Title with green highlighted word
                     RichText(
                       text: TextSpan(
-                        style: GoogleFonts.montserrat(
+                        style: const TextStyle(
+                          fontFamily: AppTextStyles.montserrat,
                           fontSize: 32,
                           fontWeight: FontWeight.w800,
                           color: AppColors.textPrimary,

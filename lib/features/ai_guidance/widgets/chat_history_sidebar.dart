@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:acadex/config/theme/app_colors.dart';
 import 'package:acadex/config/theme/app_text_styles.dart';
 import '../providers/ai_chat_provider.dart';
@@ -33,7 +32,8 @@ class ChatHistorySidebar extends ConsumerWidget {
                 children: [
                   Text(
                     'Chat History',
-                    style: GoogleFonts.montserrat(
+                    style: const TextStyle(
+                      fontFamily: AppTextStyles.montserrat,
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
                       color: AppColors.textPrimary,
@@ -100,13 +100,16 @@ class ChatHistorySidebar extends ConsumerWidget {
                       itemCount: sessions.length,
                       itemBuilder: (context, index) {
                         final session = sessions[index];
-                        final isActive = session.id == chatState.activeSessionId;
+                        final isActive =
+                            session.id == chatState.activeSessionId;
 
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 4),
                           child: ListTile(
                             onTap: () {
-                              ref.read(aiChatProvider.notifier).openSession(session.id);
+                              ref
+                                  .read(aiChatProvider.notifier)
+                                  .openSession(session.id);
                               Navigator.pop(context);
                             },
                             shape: RoundedRectangleBorder(
@@ -124,7 +127,9 @@ class ChatHistorySidebar extends ConsumerWidget {
                               decoration: BoxDecoration(
                                 color: isActive
                                     ? AppColors.primary.withOpacity(0.15)
-                                    : AppColors.surfaceHighlight.withOpacity(0.5),
+                                    : AppColors.surfaceHighlight.withOpacity(
+                                        0.5,
+                                      ),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Icon(
@@ -139,9 +144,12 @@ class ChatHistorySidebar extends ConsumerWidget {
                               session.title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.urbanist(
+                              style: TextStyle(
+                                fontFamily: AppTextStyles.urbanist,
                                 fontSize: 14,
-                                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                                fontWeight: isActive
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
                                 color: isActive
                                     ? AppColors.textPrimary
                                     : AppColors.textSecondary,
@@ -149,14 +157,17 @@ class ChatHistorySidebar extends ConsumerWidget {
                             ),
                             subtitle: Text(
                               _formatDate(session.createdAt),
-                              style: GoogleFonts.urbanist(
+                              style: const TextStyle(
+                                fontFamily: AppTextStyles.urbanist,
                                 fontSize: 11,
                                 color: AppColors.textHint,
                               ),
                             ),
                             trailing: IconButton(
                               onPressed: () {
-                                ref.read(aiChatProvider.notifier).deleteSession(session.id);
+                                ref
+                                    .read(aiChatProvider.notifier)
+                                    .deleteSession(session.id);
                               },
                               icon: Icon(
                                 Icons.delete_outline_rounded,

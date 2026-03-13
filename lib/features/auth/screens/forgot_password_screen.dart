@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:acadex/config/theme/app_colors.dart';
 import 'package:acadex/config/theme/app_text_styles.dart';
@@ -96,7 +95,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
                     child: Text(
                       'Reset\nPassword',
-                      style: GoogleFonts.montserrat(
+                      style: const TextStyle(
+                        fontFamily: AppTextStyles.montserrat,
                         fontSize: 52,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.5,

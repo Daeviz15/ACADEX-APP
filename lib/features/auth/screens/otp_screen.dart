@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:acadex/config/theme/app_colors.dart';
 import 'package:acadex/config/theme/app_text_styles.dart';
@@ -110,11 +109,11 @@ class _OtpScreenState extends State<OtpScreen> {
 
                   const SizedBox(height: 40),
 
-                  // Header Text
                   RichText(
                     textAlign: TextAlign.center,
                     text: TextSpan(
-                      style: GoogleFonts.montserrat(
+                      style: const TextStyle(
+                        fontFamily: AppTextStyles.montserrat,
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
                         color: AppColors.textPrimary,
@@ -161,10 +160,10 @@ class _OtpScreenState extends State<OtpScreen> {
                               _focusNodes[index - 1].requestFocus();
                             }
                           },
-                          textAlign: TextAlign.center,
                           keyboardType: TextInputType.number,
                           maxLength: 1,
-                          style: GoogleFonts.montserrat(
+                          style: const TextStyle(
+                            fontFamily: AppTextStyles.montserrat,
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,

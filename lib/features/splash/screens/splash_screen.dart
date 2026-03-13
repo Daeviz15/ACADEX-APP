@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:acadex/config/theme/app_colors.dart';
+import 'package:acadex/config/theme/app_text_styles.dart';
 import '../../onboarding/providers/onboarding_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -149,12 +149,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
                 const SizedBox(height: 24),
 
-                // Tagline (replacing BEER CAFE)
+                // Tagline
                 FadeTransition(
                   opacity: _elementsFadeController,
                   child: Text(
                     'YOUR ACADEMIC COMPANION',
-                    style: GoogleFonts.montserrat(
+                    style: TextStyle(
+                      fontFamily: AppTextStyles.hostGrotesk,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 4.0,

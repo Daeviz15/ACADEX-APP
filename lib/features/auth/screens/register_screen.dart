@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:acadex/config/theme/app_colors.dart';
 import 'package:acadex/config/theme/app_text_styles.dart';
@@ -51,7 +50,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1B633E), // Lightened dark green again
+      backgroundColor: const Color(0xFF1B633E), // Match Login Screen dark green
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -102,7 +101,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 16),
                   Text(
                     'Sign Up',
-                    style: GoogleFonts.montserrat(
+                    style: const TextStyle(
+                      fontFamily: AppTextStyles.montserrat,
                       fontSize: 40,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
@@ -128,7 +128,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Container(
                 width: double.infinity,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFE8E8E8), // Slightly lighter grey
+                  color: Color(0xFFF5F5F5), // Match Login whiter bottom
                   borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
                 ),
                 child: SingleChildScrollView(
@@ -138,8 +138,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     children: [
                       // Form Fields
                       CustomTextField(
-                        label: 'Full Name',
-                        hintText: 'John Doe',
+                         hintText: 'John Doe',
                         prefixIcon: Icons.person_outline,
                         controller: _nameController,
                         isLightMode: true,
@@ -149,8 +148,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       CustomTextField(
                         key: const ValueKey('email_reg_input'),
-                        label: 'Email Address',
-                        hintText: 'name@university.edu',
+                         hintText: 'name@university.edu',
                         prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                         controller: _emailController,
@@ -160,8 +158,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 24),
 
                       CustomTextField(
-                        label: 'Password',
-                        hintText: 'Create a strong password',
+                         hintText: 'Create a strong password',
                         prefixIcon: Icons.lock_outline,
                         isPassword: true,
                         controller: _passwordController,
@@ -177,8 +174,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 24),
 
                       CustomTextField(
-                        label: 'Confirm Password',
-                        hintText: 'Re-enter your password',
+                         hintText: 'Re-enter your password',
                         prefixIcon: Icons.lock_reset_outlined,
                         isPassword: true,
                         controller: _confirmPasswordController,
@@ -189,7 +185,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       CustomButton(
                         text: 'Create Account',
-                        backgroundColor: const Color(0xFF1B633E), // Matching green CTA
+                         backgroundColor: const Color(0xFF1B633E), // Match Login screen button style
                         textColor: Colors.white,
                         onPressed: _handleRegister,
                       ).animate().fadeIn(delay: 750.ms).scale(begin: const Offset(0.95, 0.95)),
@@ -240,7 +236,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 TextSpan(
                                   text: 'Login',
                                   style: AppTextStyles.bodyMedium.copyWith(
-                                    color: const Color(0xFF1B633E), // Matching green CTA
+                                    color: AppColors.primary,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
