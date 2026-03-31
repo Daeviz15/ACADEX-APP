@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
@@ -24,6 +25,8 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+    final isDark = context.isDarkMode;
     final hasCompletedOnboarding = ref.watch(aiOnboardingProvider);
 
     if (!hasCompletedOnboarding) {
@@ -35,47 +38,67 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: AppColors.background,
+      extendBodyBehindAppBar: true,
+      backgroundColor: isDark ? c.background : const Color(0xFF00664F),
       drawer: const ChatHistorySidebar(),
-      appBar: _buildAppBar(hasActiveSession),
-      body: hasActiveSession
-          ? _buildConversationView(chatState)
-          : _ChatHomeView(
-              onSend: (text) {
-                ref.read(aiChatProvider.notifier).sendMessage(text);
-              },
-            ),
+      appBar: _buildAppBar(hasActiveSession, c),
+      body: Stack(
+        children: [
+          
+          hasActiveSession
+              ? _buildConversationView(chatState)
+              : _ChatHomeView(
+                  onSend: (text) {
+                    ref.read(aiChatProvider.notifier).sendMessage(text);
+                  },
+                ),
+        ],
+      ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(bool hasActiveSession) {
+  PreferredSizeWidget _buildAppBar(bool hasActiveSession, AppColorScheme c) {
+    final isDark = context.isDarkMode;
     return AppBar(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? c.background.withValues(alpha: 0.8) : const Color(0xFF00664F).withValues(alpha: 0.9),
       elevation: 0,
-      surfaceTintColor: Colors.transparent,
-      leading: IconButton(
-        onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceHighlight.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(
-            Icons.menu_rounded,
-            color: AppColors.textPrimary,
-            size: 20,
+      scrolledUnderElevation: 0,
+      flexibleSpace: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(color: Colors.transparent),
+        ),
+      ),
+      leadingWidth: 72,
+      leading: Center(
+        child: IconButton(
+          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+          icon: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: isDark ? c.surface.withValues(alpha: 0.7) : Colors.white.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(14),
+              border: isDark ? Border.all(
+                color: c.surfaceHighlight.withValues(alpha: 0.5),
+                width: 1,
+              ) : null,
+            ),
+            child: Icon(
+              Icons.menu_rounded,
+              color: isDark ? c.textPrimary : Colors.white,
+              size: 20,
+            ),
           ),
         ),
       ),
       title: hasActiveSession
           ? Text(
               'AI Chat',
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: AppTextStyles.montserrat,
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: isDark ? c.textPrimary : Colors.white,
               ),
             )
           : null,
@@ -89,12 +112,12 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: isDark ? c.primary.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.add_rounded,
-                color: AppColors.primary,
+                color: isDark ? c.primary : Colors.white,
                 size: 20,
               ),
             ),
@@ -179,11 +202,11 @@ class _ChatHomeViewState extends State<_ChatHomeView>
   }
 
   void _onFocusChange() {
-    setState(() {}); // trigger rebuild for active border color
+    setState(() {});
   }
 
   void _onTextChange() {
-    setState(() {}); // trigger rebuild for active border color
+    setState(() {});
   }
 
   void _onVisibilityChanged(VisibilityInfo info) {
@@ -192,8 +215,6 @@ class _ChatHomeViewState extends State<_ChatHomeView>
 
     if (visibleFraction > 0.5 && !_isVisible) {
       setState(() => _isVisible = true);
-      print('>>> AI Chat: Screen is VISIBLE. Resuming Typewriter and Lottie.');
-      // Resume the typewriter loop from its current state
       if (_isTyping) {
         _startTypewriter();
       } else {
@@ -202,14 +223,12 @@ class _ChatHomeViewState extends State<_ChatHomeView>
       if (_isLottieLoaded) _lottieController?.repeat();
     } else if (visibleFraction <= 0.5 && _isVisible) {
       setState(() => _isVisible = false);
-      print('>>> AI Chat: Screen is HIDDEN. Pausing Typewriter and Lottie.');
       _typewriterTimer?.cancel();
       _lottieController?.stop();
     }
   }
 
   void _startTypewriter() {
-    // If we're resuming, don't reset strings if they already have data
     if (_displayedHint.isEmpty) {
       _charIndex = 0;
       _isTyping = true;
@@ -226,14 +245,12 @@ class _ChatHomeViewState extends State<_ChatHomeView>
       final currentHint = _hints[_currentHintIndex];
 
       if (_isTyping) {
-        // Typing forward
         if (_charIndex < currentHint.length) {
           setState(() {
             _charIndex++;
             _displayedHint = currentHint.substring(0, _charIndex);
           });
         } else {
-          // Pause at end of word
           timer.cancel();
           _typewriterTimer = Timer(const Duration(milliseconds: 2000), () {
             if (mounted) {
@@ -262,7 +279,6 @@ class _ChatHomeViewState extends State<_ChatHomeView>
           _displayedHint = _hints[_currentHintIndex].substring(0, _charIndex);
         });
       } else {
-        // Move to next hint
         timer.cancel();
         setState(() {
           _currentHintIndex = (_currentHintIndex + 1) % _hints.length;
@@ -286,6 +302,8 @@ class _ChatHomeViewState extends State<_ChatHomeView>
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+    final isDark = context.isDarkMode;
     final isActive = _focusNode.hasFocus || _inputController.text.isNotEmpty;
 
     return VisibilityDetector(
@@ -296,8 +314,12 @@ class _ChatHomeViewState extends State<_ChatHomeView>
           children: [
             const Spacer(flex: 2),
 
-            // Bot Lottie hero
-            SizedBox(
+            // Bot Lottie hero with soft background glow
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                const SizedBox.shrink(),
+                SizedBox(
                   height: 120,
                   width: 120,
                   child: Lottie.asset(
@@ -314,11 +336,13 @@ class _ChatHomeViewState extends State<_ChatHomeView>
                     frameRate: FrameRate.max,
                     addRepaintBoundary: true,
                   ),
-                )
+                ),
+              ],
+            )
                 .animate()
-                .fadeIn(duration: 600.ms)
+                .fadeIn(duration: 800.ms)
                 .scale(
-                  begin: const Offset(0.85, 0.85),
+                  begin: const Offset(0.8, 0.8),
                   curve: Curves.easeOutBack,
                 ),
 
@@ -328,16 +352,15 @@ class _ChatHomeViewState extends State<_ChatHomeView>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: SizedBox(
-                height:
-                    60, // Fixed height to prevent shifting layout when text wraps
+                height: 60,
                 child: RichText(
                   textAlign: TextAlign.center,
                   text: TextSpan(
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: AppTextStyles.outfit,
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: isDark ? c.textPrimary : Colors.white,
                       height: 1.3,
                     ),
                     children: [
@@ -354,29 +377,32 @@ class _ChatHomeViewState extends State<_ChatHomeView>
 
             const Spacer(flex: 2),
 
-            // Input box — active green border covers the entire box safely
+            // Input box
             Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
+                    duration: const Duration(milliseconds: 300),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(18),
+                      color: isDark
+                          ? c.surface.withValues(alpha: isActive ? 0.95 : 0.7)
+                          : Colors.white.withValues(alpha: isActive ? 0.95 : 0.85),
+                      borderRadius: BorderRadius.circular(24),
                       border: Border.all(
                         color: isActive
-                            ? AppColors.primary
-                            : AppColors.surfaceHighlight.withOpacity(0.4),
-                        width: isActive ? 1.5 : 1.0,
+                            ? (isDark ? c.primary : Colors.white)
+                            : (isDark ? c.surfaceHighlight.withValues(alpha: 0.5) : Colors.white),
+                        width: 1.5,
                       ),
-                      boxShadow: isActive
-                          ? [
-                              BoxShadow(
-                                color: AppColors.primary.withOpacity(0.15),
-                                blurRadius: 20,
-                                offset: const Offset(0, 4),
-                              ),
-                            ]
-                          : [],
+                      boxShadow: [
+                        BoxShadow(
+                          color: isDark
+                              ? (isActive ? c.primary : Colors.black).withValues(alpha: isActive ? 0.12 : 0.03)
+                              : Colors.black.withValues(alpha: isActive ? 0.1 : 0.03),
+                          blurRadius: 24,
+                          spreadRadius: -4,
+                          offset: Offset(0, isActive ? 8 : 4),
+                        ),
+                      ],
                     ),
                     child: Row(
                       children: [
@@ -384,10 +410,10 @@ class _ChatHomeViewState extends State<_ChatHomeView>
                           child: TextField(
                             controller: _inputController,
                             focusNode: _focusNode,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: AppTextStyles.urbanist,
                               fontSize: 15,
-                              color: AppColors.textPrimary,
+                              color: c.textPrimary,
                             ),
                             maxLines: 1,
                             decoration: InputDecoration(
@@ -397,15 +423,15 @@ class _ChatHomeViewState extends State<_ChatHomeView>
                               hintStyle: TextStyle(
                                 fontFamily: AppTextStyles.urbanist,
                                 fontSize: 15,
-                                color: AppColors.textHint.withOpacity(0.5),
+                                color: isDark ? c.textHint.withValues(alpha: 0.5) : c.textSecondary.withValues(alpha: 0.8),
                               ),
-                              border: OutlineInputBorder(
+                              border: const OutlineInputBorder(
                                 borderSide: BorderSide.none,
                               ),
-                              enabledBorder: OutlineInputBorder(
+                              enabledBorder: const OutlineInputBorder(
                                 borderSide: BorderSide.none,
                               ),
-                              focusedBorder: OutlineInputBorder(
+                              focusedBorder: const OutlineInputBorder(
                                 borderSide: BorderSide.none,
                               ),
                               contentPadding: const EdgeInsets.symmetric(
@@ -423,13 +449,19 @@ class _ChatHomeViewState extends State<_ChatHomeView>
                             onTap: _handleSend,
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
-                              width: 44,
-                              height: 44,
+                              width: 48,
+                              height: 48,
                               decoration: BoxDecoration(
                                 color: isActive
-                                    ? AppColors.primary.withOpacity(0.15)
+                                    ? c.primary.withValues(alpha: 0.15)
                                     : Colors.transparent,
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isActive
+                                      ? c.primary.withValues(alpha: 0.3)
+                                      : Colors.transparent,
+                                  width: 1,
+                                ),
                               ),
                               child: Center(
                                 child: Lottie.asset(
@@ -438,13 +470,21 @@ class _ChatHomeViewState extends State<_ChatHomeView>
                                   height: 24,
                                   fit: BoxFit.contain,
                                   animate: isActive,
+                                  delegates: LottieDelegates(
+                                    values: [
+                                      ValueDelegate.color(
+                                        const ['**'],
+                                        value: isActive ? c.primary : c.textHint.withValues(alpha: 0.5),
+                                      ),
+                                    ],
+                                  ),
                                   errorBuilder: (context, error, stackTrace) {
                                     return Icon(
                                       Icons.arrow_upward_rounded,
                                       color: isActive
-                                          ? AppColors.primary
-                                          : AppColors.textSecondary.withOpacity(
-                                              0.5,
+                                          ? Colors.white
+                                          : c.textSecondary.withValues(
+                                              alpha: 0.5,
                                             ),
                                       size: 20,
                                     );
@@ -476,26 +516,31 @@ class _ChatHomeViewState extends State<_ChatHomeView>
                     Icons.school_rounded,
                     'Exam Prep',
                     'Help me prepare for my upcoming exam',
+                    c,
                   ),
                   _suggestionChip(
                     Icons.help_outline_rounded,
                     'Quick Question',
                     'I have a general academic question',
+                    c,
                   ),
                   _suggestionChip(
                     Icons.menu_book_rounded,
                     'Past Questions',
                     'Help me study past exam questions',
+                    c,
                   ),
                   _suggestionChip(
                     Icons.code_rounded,
                     'Debug Code',
                     'I need help debugging my code',
+                    c,
                   ),
                   _suggestionChip(
                     Icons.description_rounded,
                     'Assignment',
                     'Help me with my assignment',
+                    c,
                   ),
                 ],
               ),
@@ -508,7 +553,8 @@ class _ChatHomeViewState extends State<_ChatHomeView>
     );
   }
 
-  Widget _suggestionChip(IconData icon, String label, String prompt) {
+  Widget _suggestionChip(IconData icon, String label, String prompt, AppColorScheme c) {
+    final isDark = context.isDarkMode;
     return Padding(
       padding: const EdgeInsets.only(right: 10),
       child: GestureDetector(
@@ -516,25 +562,25 @@ class _ChatHomeViewState extends State<_ChatHomeView>
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(14),
+            color: isDark ? c.surface.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: AppColors.surfaceHighlight.withOpacity(0.4),
-              width: 1,
+              color: isDark ? c.surfaceHighlight.withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.2),
+              width: 1.2,
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 16, color: AppColors.primary),
+              Icon(icon, size: 16, color: isDark ? c.primary : Colors.white.withValues(alpha: 0.8)),
               const SizedBox(width: 8),
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: AppTextStyles.urbanist,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: isDark ? c.textPrimary : Colors.white,
                 ),
               ),
             ],
@@ -573,6 +619,7 @@ class _TypewriterCursorState extends State<_TypewriterCursor>
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return FadeTransition(
       opacity: _controller,
       child: Container(
@@ -580,7 +627,7 @@ class _TypewriterCursorState extends State<_TypewriterCursor>
         height: 22,
         margin: const EdgeInsets.only(left: 2, bottom: 2),
         decoration: BoxDecoration(
-          color: AppColors.primary,
+          color: context.isDarkMode ? c.primary : Colors.white,
           borderRadius: BorderRadius.circular(1),
         ),
       ),

@@ -6,14 +6,18 @@ import 'package:acadex/core/widgets/custom_button.dart';
 import 'package:acadex/core/widgets/custom_text_field.dart';
 import 'package:acadex/core/widgets/social_login_button.dart';
 
-class LoginScreen extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/widgets/lottie_loading.dart';
+import '../providers/auth_provider.dart';
+
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -24,9 +28,24 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _handleLogin() {
-    // Navigate to dashboard after login logic
-    context.go('/dashboard');
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) return;
+
+    try {
+      await ref.read(authNotifierProvider.notifier).login(email, password);
+      if (mounted) context.go('/dashboard');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ));
+      }
+    }
   }
 
   @override
@@ -163,12 +182,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 32),
 
                       // Sign In Button
-                      CustomButton(
-                        text: 'Sign In',
-                        backgroundColor: const Color(0xFF1B633E), // Matching green CTA
-                        textColor: Colors.white,
-                        onPressed: _handleLogin,
-                      ).animate().fadeIn(delay: 700.ms).scale(begin: const Offset(0.95, 0.95)),
+                      ref.watch(authNotifierProvider).isLoading
+                          ? const CustomLottieLoading(height: 60)
+                          : CustomButton(
+                              text: 'Sign In',
+                              backgroundColor: const Color(0xFF1B633E), // Matching green CTA
+                              textColor: Colors.white,
+                              onPressed: _handleLogin,
+                            ).animate().fadeIn(delay: 700.ms).scale(begin: const Offset(0.95, 0.95)),
 
                       const SizedBox(height: 48),
 
@@ -177,18 +198,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         platform: 'Google',
                         iconPath: 'assets/icons/google.png',
                         isLightMode: true,
-                        onPressed: () {},
+                        onPressed: () {
+                          ref.read(authNotifierProvider.notifier).googleLogin();
+                        },
                       ).animate().fadeIn(delay: 800.ms).slideY(begin: 0.1),
 
-                      const SizedBox(height: 16),
-
-                      SocialLoginButton(
-                        platform: 'Facebook',
-                        iconPath: '', // Relies on internal icon
-                        isLightMode: true,
-                        onPressed: () {},
-                      ).animate().fadeIn(delay: 900.ms).slideY(begin: 0.1),
-                      
                       // Bottom spacing for long screens
                       const SizedBox(height: 40),
                     ],

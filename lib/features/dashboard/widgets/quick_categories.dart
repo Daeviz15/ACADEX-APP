@@ -9,15 +9,17 @@ class QuickCategories extends ConsumerWidget {
   const QuickCategories({super.key});
 
   final List<Map<String, dynamic>> _categories = const [
-    {'icon': Icons.edit_document, 'label': 'Assignments', 'color': Color(0xFFE2F6E9)}, // Light green tint
-    {'icon': Icons.psychology_rounded, 'label': 'AI Tutors', 'color': Color(0xFFF3E5F5)}, // Light purple tint
-    {'icon': Icons.library_books_rounded, 'label': 'Past Qsts', 'color': Color(0xFFE3F2FD)}, // Light blue tint
-    {'icon': Icons.emoji_events_rounded, 'label': 'Quizzes', 'color': Color(0xFFFFF3E0)}, // Light orange tint
-    {'icon': Icons.laptop_mac_rounded, 'label': 'Software', 'color': Color(0xFFFFEBEE)}, // Light red tint
+    {'icon': Icons.edit_document, 'label': 'Assignments', 'color': Color(0xFFE2F6E9)},
+    {'icon': Icons.psychology_rounded, 'label': 'AI Tutors', 'color': Color(0xFFF3E5F5)},
+    {'icon': Icons.library_books_rounded, 'label': 'Past Qsts', 'color': Color(0xFFE3F2FD)},
+    {'icon': Icons.emoji_events_rounded, 'label': 'Quizzes', 'color': Color(0xFFFFF3E0)},
+    {'icon': Icons.laptop_mac_rounded, 'label': 'Software', 'color': Color(0xFFFFEBEE)},
   ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.colors;
+
     return SizedBox(
       height: 48,
       child: ListView.separated(
@@ -27,10 +29,7 @@ class QuickCategories extends ConsumerWidget {
         separatorBuilder: (context, index) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
           final cat = _categories[index];
-          // Determine icon color based on its background tint for high contrast
           final Color bgColor = cat['color'];
-          // Convert light background color into a vibrant dark color for the icon string
-          // We can just use primary for everything or custom colors. Let's use primary for sleekness.
           
           return Material(
             color: Colors.transparent,
@@ -71,28 +70,34 @@ class QuickCategories extends ConsumerWidget {
               },
               borderRadius: BorderRadius.circular(24),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark 
+                      ? c.surfaceHighlight.withValues(alpha: 0.3)
+                      : bgColor.withValues(alpha: 0.3), // Soft pill background based on theme
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: AppColors.surfaceHighlight.withOpacity(0.3),
-                    width: 1,
-                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(4),
+                      padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: bgColor.withOpacity(0.15),
+                        color: c.surface, // Inner circle is solid surface color
                         shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Icon(
                         cat['icon'],
                         size: 16,
-                        color: AppColors.primary,
+                        color: c.primary,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -100,6 +105,7 @@ class QuickCategories extends ConsumerWidget {
                       cat['label'],
                       style: AppTextStyles.bodyMedium.copyWith(
                         fontWeight: FontWeight.w600,
+                        color: c.textPrimary,
                       ),
                     ),
                   ],

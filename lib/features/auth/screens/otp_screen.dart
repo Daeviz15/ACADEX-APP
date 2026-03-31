@@ -5,16 +5,22 @@ import 'package:acadex/config/theme/app_colors.dart';
 import 'package:acadex/config/theme/app_text_styles.dart';
 import 'package:acadex/core/widgets/custom_button.dart';
 
-class OtpScreen extends StatefulWidget {
-  const OtpScreen({super.key});
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/widgets/lottie_loading.dart';
+import '../providers/auth_provider.dart';
+
+class OtpScreen extends ConsumerStatefulWidget {
+  final String email;
+  
+  const OtpScreen({super.key, required this.email});
 
   @override
-  State<OtpScreen> createState() => _OtpScreenState();
+  ConsumerState<OtpScreen> createState() => _OtpScreenState();
 }
 
-class _OtpScreenState extends State<OtpScreen> {
-  final List<TextEditingController> _controllers = List.generate(4, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
+class _OtpScreenState extends ConsumerState<OtpScreen> {
+  final List<TextEditingController> _controllers = List.generate(6, (_) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
   bool _isLocked = true;
 
   @override
@@ -46,9 +52,22 @@ class _OtpScreenState extends State<OtpScreen> {
     super.dispose();
   }
 
-  void _handleContinue() {
-    // Navigate to dashboard or success screen
-    context.go('/dashboard');
+  Future<void> _handleContinue() async {
+    final otpCode = _controllers.map((c) => c.text).join();
+    if (otpCode.length < 6) return;
+    
+    try {
+      await ref.read(authNotifierProvider.notifier).verifyOtp(widget.email, otpCode);
+      if (mounted) context.go('/dashboard');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ));
+      }
+    }
   }
 
   @override
@@ -146,15 +165,15 @@ class _OtpScreenState extends State<OtpScreen> {
                   // OTP Input Fields
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: List.generate(4, (index) {
+                    children: List.generate(6, (index) {
                       return SizedBox(
-                        width: 70,
-                        height: 70,
+                        width: 50,
+                        height: 60,
                         child: TextField(
                           controller: _controllers[index],
                           focusNode: _focusNodes[index],
                           onChanged: (value) {
-                            if (value.length == 1 && index < 3) {
+                            if (value.length == 1 && index < 5) {
                               _focusNodes[index + 1].requestFocus();
                             } else if (value.isEmpty && index > 0) {
                               _focusNodes[index - 1].requestFocus();
@@ -208,10 +227,12 @@ class _OtpScreenState extends State<OtpScreen> {
 
                   const SizedBox(height: 48),
 
-                  CustomButton(
-                    text: 'Continue',
-                    onPressed: _handleContinue,
-                  ).animate().fadeIn(delay: 1000.ms).scale(begin: const Offset(0.95, 0.95)),
+                  ref.watch(authNotifierProvider).isLoading
+                      ? const CustomLottieLoading(height: 60)
+                      : CustomButton(
+                          text: 'Continue',
+                          onPressed: _handleContinue,
+                        ).animate().fadeIn(delay: 1000.ms).scale(begin: const Offset(0.95, 0.95)),
                 ],
               ),
             ),

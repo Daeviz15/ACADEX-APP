@@ -129,7 +129,6 @@ class _AiOnboardingScreenState extends ConsumerState<AiOnboardingScreen> {
                   ),
                 ).animate().fadeIn(duration: 400.ms),
 
-                // PageView
                 Expanded(
                   child: PageView(
                     controller: _pageController,
@@ -143,12 +142,10 @@ class _AiOnboardingScreenState extends ConsumerState<AiOnboardingScreen> {
                   ),
                 ),
 
-                // Bottom: dot indicators + call to action
                 Padding(
                   padding: const EdgeInsets.fromLTRB(32, 8, 32, 16),
                   child: Column(
                     children: [
-                      // Dot row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(3, (index) {

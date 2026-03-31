@@ -69,7 +69,6 @@ class _ChatConversationViewState extends State<ChatConversationView> with Ticker
   @override
   void didUpdateWidget(covariant ChatConversationView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Auto-scroll to bottom when new messages arrive
     if (widget.session.messages.length != oldWidget.session.messages.length) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_scrollController.hasClients) {
@@ -92,8 +91,6 @@ class _ChatConversationViewState extends State<ChatConversationView> with Ticker
 
   @override
   Widget build(BuildContext context) {
-    final isActive = _focusNode.hasFocus || _controller.text.isNotEmpty;
-
     return VisibilityDetector(
       key: const Key('ai_conversation_view'),
       onVisibilityChanged: _onVisibilityChanged,
@@ -103,16 +100,20 @@ class _ChatConversationViewState extends State<ChatConversationView> with Ticker
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                MediaQuery.of(context).padding.top + kToolbarHeight + 20,
+                20,
+                16,
+              ),
               physics: const BouncingScrollPhysics(),
               itemCount: widget.session.messages.length + (widget.isLoading ? 1 : 0),
               itemBuilder: (context, index) {
-                // Typing indicator
                 if (index == widget.session.messages.length && widget.isLoading) {
-                  return _buildTypingIndicator(isActive);
+                  return _buildTypingIndicator();
                 }
                 final msg = widget.session.messages[index];
-                return _buildMessageBubble(msg, isActive);
+                return _buildMessageBubble(msg);
               },
             ),
           ),
@@ -124,7 +125,8 @@ class _ChatConversationViewState extends State<ChatConversationView> with Ticker
     );
   }
 
-  Widget _buildMessageBubble(ChatMessage message, bool isActive) {
+  Widget _buildMessageBubble(ChatMessage message) {
+    final c = context.colors;
     final isUser = message.isUser;
 
     return Padding(
@@ -139,7 +141,7 @@ class _ChatConversationViewState extends State<ChatConversationView> with Ticker
               margin: const EdgeInsets.only(right: 10, top: 4),
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: c.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Lottie.asset(
@@ -158,18 +160,25 @@ class _ChatConversationViewState extends State<ChatConversationView> with Ticker
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: isUser
-                    ? AppColors.primary
-                    : AppColors.surface,
+                    ? c.primary
+                    : c.surface.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(18),
-                  topRight: const Radius.circular(18),
-                  bottomLeft: Radius.circular(isUser ? 18 : 4),
-                  bottomRight: Radius.circular(isUser ? 4 : 18),
+                  topLeft: const Radius.circular(20),
+                  topRight: const Radius.circular(20),
+                  bottomLeft: Radius.circular(isUser ? 20 : 6),
+                  bottomRight: Radius.circular(isUser ? 6 : 20),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: (isUser ? c.primary : Colors.black).withValues(alpha: isUser ? 0.1 : 0.03),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
                 border: isUser
                     ? null
                     : Border.all(
-                        color: AppColors.surfaceHighlight.withOpacity(0.3),
+                        color: c.surfaceHighlight.withValues(alpha: 0.5),
                         width: 1,
                       ),
               ),
@@ -179,7 +188,7 @@ class _ChatConversationViewState extends State<ChatConversationView> with Ticker
                   fontFamily: AppTextStyles.hostGrotesk,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: isUser ? Colors.black : AppColors.textPrimary,
+                  color: isUser ? Colors.white : c.textPrimary,
                   height: 1.5,
                 ),
               ),
@@ -192,7 +201,9 @@ class _ChatConversationViewState extends State<ChatConversationView> with Ticker
     );
   }
 
-  Widget _buildTypingIndicator(bool isActive) {
+  Widget _buildTypingIndicator() {
+    final c = context.colors;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -202,7 +213,7 @@ class _ChatConversationViewState extends State<ChatConversationView> with Ticker
             margin: const EdgeInsets.only(right: 10, top: 4),
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: c.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Lottie.asset(
@@ -216,15 +227,22 @@ class _ChatConversationViewState extends State<ChatConversationView> with Ticker
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: c.surface.withValues(alpha: 0.8),
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(18),
-                topRight: Radius.circular(18),
-                bottomRight: Radius.circular(18),
-                bottomLeft: Radius.circular(4),
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+                bottomRight: Radius.circular(20),
+                bottomLeft: Radius.circular(6),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
               border: Border.all(
-                color: AppColors.surfaceHighlight.withOpacity(0.3),
+                color: c.surfaceHighlight.withValues(alpha: 0.5),
                 width: 1,
               ),
             ),
@@ -252,39 +270,38 @@ class _ChatConversationViewState extends State<ChatConversationView> with Ticker
   }
 
   Widget _buildInputBar() {
+    final c = context.colors;
+    final isDark = context.isDarkMode;
     final isActive = _focusNode.hasFocus || _controller.text.isNotEmpty;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        border: Border(
-          top: BorderSide(
-            color: AppColors.surfaceHighlight.withOpacity(0.3),
-            width: 1,
-          ),
-        ),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      decoration: const BoxDecoration(
+        color: Colors.transparent,
       ),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 300),
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(18),
+          color: isDark
+              ? c.surface.withValues(alpha: isActive ? 0.95 : 0.7)
+              : Colors.white.withValues(alpha: isActive ? 0.95 : 0.85),
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: isActive
-                ? AppColors.primary
-                : AppColors.surfaceHighlight.withOpacity(0.4),
-            width: isActive ? 1.5 : 1.0,
+                ? (isDark ? c.primary : Colors.white)
+                : (isDark ? c.surfaceHighlight.withValues(alpha: 0.5) : Colors.white),
+            width: 1.5,
           ),
-          boxShadow: isActive
-              ? [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.15),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : [],
+          boxShadow: [
+            BoxShadow(
+              color: isDark
+                  ? (isActive ? c.primary : Colors.black).withValues(alpha: isActive ? 0.12 : 0.03)
+                  : Colors.black.withValues(alpha: isActive ? 0.1 : 0.03),
+              blurRadius: 24,
+              spreadRadius: -4,
+              offset: Offset(0, isActive ? 8 : 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
@@ -295,7 +312,7 @@ class _ChatConversationViewState extends State<ChatConversationView> with Ticker
                 style: TextStyle(
                   fontFamily: AppTextStyles.urbanist,
                   fontSize: 15,
-                  color: AppColors.textPrimary,
+                  color: c.textPrimary,
                 ),
                 maxLines: 4,
                 minLines: 1,
@@ -307,7 +324,7 @@ class _ChatConversationViewState extends State<ChatConversationView> with Ticker
                   hintStyle: TextStyle(
                     fontFamily: AppTextStyles.urbanist,
                     fontSize: 15,
-                    color: AppColors.textHint.withOpacity(0.5),
+                    color: isDark ? c.textHint.withValues(alpha: 0.5) : c.textSecondary.withValues(alpha: 0.8),
                   ),
                   border: const OutlineInputBorder(borderSide: BorderSide.none),
                   enabledBorder: const OutlineInputBorder(borderSide: BorderSide.none),
@@ -327,13 +344,19 @@ class _ChatConversationViewState extends State<ChatConversationView> with Ticker
                 onTap: _handleSend,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  width: 44,
-                  height: 44,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     color: isActive
-                        ? AppColors.primary.withOpacity(0.15)
+                        ? c.primary.withValues(alpha: 0.15)
                         : Colors.transparent,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isActive
+                          ? c.primary.withValues(alpha: 0.3)
+                          : Colors.transparent,
+                      width: 1,
+                    ),
                   ),
                   child: Center(
                     child: Lottie.asset(
@@ -342,12 +365,20 @@ class _ChatConversationViewState extends State<ChatConversationView> with Ticker
                       height: 24,
                       fit: BoxFit.contain,
                       animate: isActive && _isVisible,
+                      delegates: LottieDelegates(
+                        values: [
+                          ValueDelegate.color(
+                            const ['**'],
+                            value: Colors.white,
+                          ),
+                        ],
+                      ),
                       errorBuilder: (context, error, stackTrace) {
                         return Icon(
                           Icons.arrow_upward_rounded,
                           color: isActive
-                              ? AppColors.primary
-                              : AppColors.textSecondary.withOpacity(0.5),
+                              ? Colors.white
+                              : c.textSecondary.withValues(alpha: 0.5),
                           size: 20,
                         );
                       },

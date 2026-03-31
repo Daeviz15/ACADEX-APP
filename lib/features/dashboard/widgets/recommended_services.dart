@@ -1,111 +1,24 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:acadex/config/theme/app_colors.dart';
 import 'package:acadex/config/theme/app_text_styles.dart';
+import 'package:acadex/core/widgets/acadex_skeleton.dart';
 import '../providers/service_bookmark_provider.dart';
+import '../providers/dashboard_provider.dart';
+import '../models/dashboard_models.dart';
 import 'service_request_sheet.dart';
-
-/// Data model for a recommended service card.
-class _ServiceData {
-  final String id;
-  final String title;
-  final String subtitle;
-  final String lottie;
-  final IconData icon;
-  final List<String> placeholders;
-
-  const _ServiceData({
-    required this.id,
-    required this.title,
-    required this.subtitle,
-    required this.lottie,
-    required this.icon,
-    required this.placeholders,
-  });
-}
-
-const _services = <_ServiceData>[
-  _ServiceData(
-    id: 'academic_guidance',
-    title: 'Academic\nGuidance',
-    subtitle: 'Expert academic advice',
-    lottie: 'assets/lottie/dashboard/guidiance.json',
-    icon: Icons.school_rounded,
-    placeholders: [
-      'I need advice on selecting courses for next semester...',
-      'How do I balance my study time?',
-      'I need help preparing a study plan for midterms...',
-    ],
-  ),
-  _ServiceData(
-    id: 'custom_software',
-    title: 'Custom\nSoftware',
-    subtitle: 'Tailored software solutions',
-    lottie: 'assets/lottie/dashboard/software.json',
-    icon: Icons.code_rounded,
-    placeholders: [
-      'I need a software for my final year project...',
-      'Can you build a website for my business?',
-      'I need a mobile app built to track my inventory...',
-    ],
-  ),
-  _ServiceData(
-    id: 'final_year_project',
-    title: 'Final Year Project\nAssistance',
-    subtitle: 'End-to-end project support',
-    lottie: 'assets/lottie/dashboard/project.json',
-    icon: Icons.engineering_rounded,
-    placeholders: [
-      'How do I choose a topic for my project?',
-      'I want you to handle my full project work.',
-      'I need guidance on corrections from my supervisor...',
-    ],
-  ),
-  _ServiceData(
-    id: 'assignment_assistance',
-    title: 'Assignment\nAssistance',
-    subtitle: 'Ace every assignment',
-    lottie: 'assets/lottie/dashboard/assignment.json',
-    icon: Icons.edit_document,
-    placeholders: [
-      'I need assistance with a calculus assignment...',
-      'Can you review my essay before I submit?',
-      'I need help debugging a programming lab...',
-    ],
-  ),
-  _ServiceData(
-    id: 'past_questions',
-    title: 'Request Past\nQuestion',
-    subtitle: 'Specific past question access',
-    lottie: 'assets/lottie/documents.json',
-    icon: Icons.quiz_rounded,
-    placeholders: [
-      'Requesting MTH101 past questions for 2021/2022...',
-      'Do you have PHY102 past questions?',
-      'I need the last 5 years of ACC201 exams...',
-    ],
-  ),
-  _ServiceData(
-    id: 'tutoring_mentorship',
-    title: 'Tutoring &\nMentorship',
-    subtitle: 'One-on-one guidance',
-    lottie: 'assets/lottie/dashboard/guidiance_two.json',
-    icon: Icons.people_alt_rounded,
-    placeholders: [
-      'I need a tutor for introductory Python...',
-      'Can I get a mentor for my career path?',
-      'I need weekly tutoring for genetics...',
-    ],
-  ),
-];
 
 class RecommendedServices extends ConsumerWidget {
   const RecommendedServices({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.colors;
+    final servicesAsync = ref.watch(recommendedServicesProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -114,30 +27,26 @@ class RecommendedServices extends ConsumerWidget {
           'Recommended services for you',
           style: AppTextStyles.h3.copyWith(
             fontWeight: FontWeight.w800,
+            color: c.textPrimary,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           'Based on your activity',
           style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
+            color: c.textSecondary,
           ),
         ),
         const SizedBox(height: 16),
 
-        // Horizontal Scrollable Cards
-        SizedBox(
-          height: 250,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            itemCount: _services.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 16),
-            itemBuilder: (context, index) {
-              return _ServiceCard(
-                data: _services[index],
-              );
-            },
+        servicesAsync.when(
+          data: (services) => _RecommendedCarousel(services: services),
+          loading: () => const AcadexSkeleton(height: 270, width: double.infinity),
+          error: (err, stack) => Center(
+            child: Text(
+              'Failed to load services',
+              style: TextStyle(color: c.textSecondary),
+            ),
           ),
         ),
       ],
@@ -145,9 +54,125 @@ class RecommendedServices extends ConsumerWidget {
   }
 }
 
-/// Individual service card with visibility-aware Lottie animation.
+class _RecommendedCarousel extends StatefulWidget {
+  final List<ServiceRecommendation> services;
+  const _RecommendedCarousel({required this.services});
+
+  @override
+  State<_RecommendedCarousel> createState() => _RecommendedCarouselState();
+}
+
+class _RecommendedCarouselState extends State<_RecommendedCarousel> {
+  late PageController _pageController;
+  double _currentPage = 1.0;
+  Timer? _autoScrollTimer;
+  bool _isUserScrolling = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: 1, viewportFraction: 0.75);
+    _pageController.addListener(() {
+      if (mounted) {
+        setState(() {
+          _currentPage = _pageController.page ?? 0.0;
+        });
+      }
+    });
+
+    _startAutoScroll();
+  }
+
+  void _startAutoScroll() {
+    _autoScrollTimer?.cancel();
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (!_isUserScrolling && _pageController.hasClients) {
+        int nextPage = (_pageController.page?.round() ?? 1) + 1;
+        if (nextPage >= widget.services.length) {
+          _pageController.animateToPage(
+            0,
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.fastOutSlowIn,
+          );
+        } else {
+          _pageController.animateToPage(
+            nextPage,
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.fastOutSlowIn,
+          );
+        }
+      }
+    });
+  }
+
+  void _stopAutoScroll() {
+    _autoScrollTimer?.cancel();
+    _autoScrollTimer = null;
+  }
+
+  @override
+  void dispose() {
+    _stopAutoScroll();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.services.isEmpty) return const SizedBox.shrink();
+    
+    return SizedBox(
+      height: 270,
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification notification) {
+          if (notification is ScrollStartNotification) {
+            _isUserScrolling = true;
+            _stopAutoScroll();
+          } else if (notification is ScrollEndNotification) {
+            _isUserScrolling = false;
+            Future.delayed(const Duration(milliseconds: 1500), () {
+              if (!_isUserScrolling && mounted) {
+                _startAutoScroll();
+              }
+            });
+          }
+          return false;
+        },
+        child: PageView.builder(
+          controller: _pageController,
+          physics: const BouncingScrollPhysics(),
+          itemCount: widget.services.length,
+          itemBuilder: (context, index) {
+            double scale = 1.0;
+            double opacity = 1.0;
+
+            if (_pageController.hasClients && _pageController.position.haveDimensions) {
+              final distanceInfo = (_currentPage - index).abs();
+              scale = 1 - (distanceInfo * 0.15).clamp(0.0, 0.3);
+              opacity = 1 - (distanceInfo * 0.4).clamp(0.0, 0.6);
+            }
+
+            return Transform.scale(
+              scale: scale,
+              child: Opacity(
+                opacity: opacity,
+                child: Align(
+                  alignment: Alignment.center,
+                  child: _ServiceCard(
+                    data: widget.services[index],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
 class _ServiceCard extends ConsumerStatefulWidget {
-  final _ServiceData data;
+  final ServiceRecommendation data;
 
   const _ServiceCard({required this.data});
 
@@ -190,6 +215,8 @@ class _ServiceCardState extends ConsumerState<_ServiceCard>
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+    final isDark = context.isDarkMode;
     final bookmarks = ref.watch(serviceBookmarkProvider);
     final isBookmarked = bookmarks[widget.data.id] ?? false;
 
@@ -207,115 +234,123 @@ class _ServiceCardState extends ConsumerState<_ServiceCard>
           );
         },
         child: Container(
-          width: 220,
           decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(22),
+            color: c.surface,
+            borderRadius: BorderRadius.circular(28),
             border: Border.all(
-              color: AppColors.surfaceHighlight.withOpacity(0.5),
-              width: 1,
+              color: c.surfaceHighlight.withValues(alpha: 0.5),
+              width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
+                color: (isDark ? Colors.black : c.primary).withValues(alpha: 0.08),
+                blurRadius: 32,
+                spreadRadius: -4,
+                offset: const Offset(0, 16),
               ),
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(28),
             child: Stack(
               children: [
-                // ── Lottie Animation (top section) ──
                 Positioned(
                   top: 0,
                   left: 0,
                   right: 0,
-                  height: 150,
+                  height: 160,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceHighlight.withOpacity(0.3),
+                      color: isDark
+                          ? c.surfaceHighlight.withValues(alpha: 0.3)
+                          : c.primary.withValues(alpha: 0.02),
                     ),
-                    child: Lottie.asset(
-                      widget.data.lottie,
-                      controller: _lottieController,
-                      onLoaded: (composition) {
-                        _lottieController.duration = composition.duration;
-                        _isCompositionLoaded = true;
-                        if (_isVisible) {
-                          _lottieController.repeat();
-                        }
-                      },
-                      fit: BoxFit.contain,
-                      frameRate: FrameRate.max,
-                      addRepaintBoundary: true,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Center(
-                          child: Icon(
-                            widget.data.icon,
-                            color: AppColors.primary.withOpacity(0.5),
-                            size: 48,
+                    child: Stack(
+                      children: [
+                        if (!isDark) ...[
+                          Positioned(
+                            top: -20,
+                            right: -20,
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: c.primary.withValues(alpha: 0.08),
+                              ),
+                            ),
                           ),
-                        );
-                      },
+                          Positioned(
+                            bottom: -10,
+                            left: 20,
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.blue.withValues(alpha: 0.05),
+                              ),
+                            ),
+                          ),
+                        ],
+                        Positioned.fill(
+                          child: Lottie.asset(
+                            widget.data.lottie,
+                            controller: _lottieController,
+                            onLoaded: (composition) {
+                              _lottieController.duration = composition.duration;
+                              _isCompositionLoaded = true;
+                              if (_isVisible) {
+                                _lottieController.repeat();
+                              }
+                            },
+                            fit: BoxFit.contain,
+                            frameRate: FrameRate.max,
+                            addRepaintBoundary: true,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Center(
+                                child: Icon(
+                                  widget.data.icon,
+                                  color: c.primary.withValues(alpha: 0.5),
+                                  size: 48,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-
-                // ── Subtle green overlay blend ──
                 Positioned(
                   top: 0,
                   left: 0,
                   right: 0,
-                  height: 150,
+                  height: 160,
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          AppColors.primary.withOpacity(0.06),
-                          AppColors.primary.withOpacity(0.03),
+                          c.primary.withValues(alpha: 0.06),
+                          c.primary.withValues(alpha: 0.03),
                           Colors.transparent,
                         ],
                       ),
                     ),
                   ),
                 ),
-
-                // ── Gradient fade between Lottie and info section ──
-                Positioned(
-                  top: 120,
-                  left: 0,
-                  right: 0,
-                  height: 30,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          AppColors.surface,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // ── Info section (bottom) ──
                 Positioned(
                   left: 0,
                   right: 0,
                   bottom: 0,
                   child: Container(
                     padding: const EdgeInsets.fromLTRB(16, 8, 12, 14),
-                    color: AppColors.surface,
+                    color: c.surface,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        // Title + subtitle
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,11 +358,11 @@ class _ServiceCardState extends ConsumerState<_ServiceCard>
                             children: [
                               Text(
                                 widget.data.title,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: AppTextStyles.montserrat,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: AppColors.textPrimary,
+                                  color: c.textPrimary,
                                   height: 1.25,
                                 ),
                               ),
@@ -340,14 +375,12 @@ class _ServiceCardState extends ConsumerState<_ServiceCard>
                                   fontFamily: AppTextStyles.urbanist,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w500,
-                                  color: AppColors.textSecondary.withOpacity(0.7),
+                                  color: c.textSecondary.withValues(alpha: 0.7),
                                 ),
                               ),
                             ],
                           ),
                         ),
-
-                        // Bookmark button
                         GestureDetector(
                           onTap: () {
                             ref
@@ -360,8 +393,8 @@ class _ServiceCardState extends ConsumerState<_ServiceCard>
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: isBookmarked
-                                  ? AppColors.primary
-                                  : AppColors.surfaceHighlight.withOpacity(0.6),
+                                  ? c.primary
+                                  : c.surfaceHighlight.withValues(alpha: 0.6),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Icon(
@@ -369,8 +402,8 @@ class _ServiceCardState extends ConsumerState<_ServiceCard>
                                   ? Icons.bookmark_rounded
                                   : Icons.bookmark_border_rounded,
                               color: isBookmarked
-                                  ? Colors.black
-                                  : AppColors.textSecondary,
+                                  ? Colors.white
+                                  : c.textSecondary,
                               size: 18,
                             ),
                           ),
@@ -379,8 +412,6 @@ class _ServiceCardState extends ConsumerState<_ServiceCard>
                     ),
                   ),
                 ),
-
-                // ── Subtle green accent line at top ──
                 Positioned(
                   top: 0,
                   left: 0,
@@ -390,9 +421,9 @@ class _ServiceCardState extends ConsumerState<_ServiceCard>
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          AppColors.primary.withOpacity(0.0),
-                          AppColors.primary.withOpacity(0.6),
-                          AppColors.primary.withOpacity(0.0),
+                          c.primary.withValues(alpha: 0.0),
+                          c.primary.withValues(alpha: 0.6),
+                          c.primary.withValues(alpha: 0.0),
                         ],
                       ),
                     ),

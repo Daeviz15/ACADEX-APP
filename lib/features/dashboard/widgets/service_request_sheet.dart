@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:acadex/core/widgets/acadex_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -75,7 +76,6 @@ class _ServiceRequestSheetState extends ConsumerState<ServiceRequestSheet> {
     if (description.isEmpty) {
       if (!mounted) return;
       setState(() => _showError = true);
-      // Trigger a short delay then reset so the animation can play again if clicked repeatedly
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) setState(() => _showError = false);
       });
@@ -88,7 +88,6 @@ class _ServiceRequestSheetState extends ConsumerState<ServiceRequestSheet> {
 
     setState(() => _isSubmitting = true);
 
-    // Build the message
     final message = '''
 📋 *New Service Request*
 👤 *Student:* David
@@ -105,7 +104,7 @@ $description
     try {
       if (await canLaunchUrl(whatsappUrl)) {
         await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
-        if (mounted) Navigator.pop(context); // Close sheet on success
+        if (mounted) Navigator.pop(context);
       } else {
         _showFallbackError();
       }
@@ -123,9 +122,7 @@ $description
         content: const Text('Could not open WhatsApp. Do you have it installed?'),
         action: SnackBarAction(
           label: 'Email Instead',
-          onPressed: () {
-            // Fallback email logic could go here
-          },
+          onPressed: () {},
         ),
       ),
     );
@@ -133,7 +130,9 @@ $description
 
   @override
   Widget build(BuildContext context) {
-    // Handle keyboard avoiding
+    final c = context.colors;
+    final isDark = context.isDarkMode;
+    final primaryColor = isDark ? c.primary : const Color(0xFF00664F);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
@@ -143,9 +142,9 @@ $description
         top: 12,
         bottom: bottomInset > 0 ? bottomInset + 24 : 48,
       ),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      decoration: BoxDecoration(
+        color: c.background,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -157,7 +156,7 @@ $description
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.surfaceHighlight,
+                color: c.surfaceHighlight,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -170,12 +169,12 @@ $description
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.15),
+                  color: primaryColor.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   widget.icon,
-                  color: AppColors.primary,
+                  color: primaryColor,
                   size: 24,
                 ),
               ),
@@ -188,13 +187,14 @@ $description
                       'Request Service',
                       style: AppTextStyles.h3.copyWith(
                         fontSize: 20,
+                        color: c.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       widget.serviceTitle.replaceAll('\n', ' '),
                       style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.primary,
+                        color: primaryColor,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -204,41 +204,41 @@ $description
               IconButton(
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.close_rounded),
-                color: AppColors.textSecondary,
+                color: c.textSecondary,
               ),
             ],
           ),
           const SizedBox(height: 32),
 
           // Read-only Student Info Field
-          _buildFieldLabel('Name'),
+          _buildFieldLabel('Name', c),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: c.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.surfaceHighlight.withOpacity(0.5)),
+              border: Border.all(color: c.surfaceHighlight.withValues(alpha: 0.5)),
             ),
             child: Text(
-              'David', // Hardcoded from user profile concept
+              'David',
               style: AppTextStyles.bodyLarge.copyWith(
-                color: AppColors.textSecondary,
+                color: c.textSecondary,
               ),
             ),
           ),
           const SizedBox(height: 20),
 
           // Description Field
-          _buildFieldLabel('Details'),
+          _buildFieldLabel('Details', c),
           Container(
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: c.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.primary),
+              border: Border.all(color: primaryColor),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: primaryColor.withValues(alpha: 0.1),
                   blurRadius: 10,
                   spreadRadius: -2,
                 ),
@@ -251,7 +251,7 @@ $description
                   focusNode: _focusNode,
                   maxLines: 4,
                   minLines: 3,
-                  style: AppTextStyles.bodyLarge,
+                  style: AppTextStyles.bodyLarge.copyWith(color: c.textPrimary),
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.all(16),
@@ -260,7 +260,6 @@ $description
                     if (_showError && val.trim().isNotEmpty) {
                       setState(() => _showError = false);
                     } else {
-                      // Trigger a rebuild so the typewriter hint hides if text is not empty
                       setState(() {});
                     }
                   },
@@ -282,7 +281,7 @@ $description
           ).animate(
             target: _showError ? 1 : 0,
           ).shake(
-            hz: 6, // Shake frequency
+            hz: 6,
             curve: Curves.easeInOutCubic,
             duration: const Duration(milliseconds: 400),
           ),
@@ -300,12 +299,15 @@ $description
                       'High Priority',
                       style: AppTextStyles.bodyLarge.copyWith(
                         fontWeight: FontWeight.w600,
+                        color: c.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Need this done urgently?',
-                      style: AppTextStyles.bodySmall,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: c.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -313,9 +315,9 @@ $description
               Switch(
                 value: _isPriority,
                 onChanged: (val) => setState(() => _isPriority = val),
-                activeColor: AppColors.background,
-                activeTrackColor: AppColors.primary,
-                inactiveTrackColor: AppColors.surfaceHighlight,
+                activeThumbColor: c.background,
+                activeTrackColor: primaryColor,
+                inactiveTrackColor: c.surfaceHighlight,
               ),
             ],
           ),
@@ -328,21 +330,18 @@ $description
             child: ElevatedButton(
               onPressed: _isSubmitting ? null : _submitRequest,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.background,
+                backgroundColor: primaryColor,
+                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
                 elevation: 0,
               ),
-              child: _isSubmitting
-                  ? const SizedBox(
+                  child: _isSubmitting
+                  ? SizedBox(
                       width: 24,
                       height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.background),
-                      ),
+                      child: AcadexLoader(size: 24),
                     )
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -362,14 +361,14 @@ $description
     );
   }
 
-  Widget _buildFieldLabel(String label) {
+  Widget _buildFieldLabel(String label, AppColorScheme c) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8),
       child: Text(
         label,
         style: AppTextStyles.bodyMedium.copyWith(
           fontWeight: FontWeight.w600,
-          color: AppColors.textSecondary,
+          color: c.textSecondary,
         ),
       ),
     );
@@ -408,8 +407,6 @@ class _TypewriterHintState extends State<_TypewriterHint> {
   @override
   void didUpdateWidget(covariant _TypewriterHint oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // If the widget loses focus, we might still want it typing, but maybe slower or pause?
-    // Let's just keep typing.
   }
 
   @override
@@ -433,14 +430,12 @@ class _TypewriterHintState extends State<_TypewriterHint> {
       final currentHint = widget.hints[_currentHintIndex];
 
       if (_isTyping) {
-        // Typing forward
         if (_charIndex < currentHint.length) {
           setState(() {
             _charIndex++;
             _displayedHint = currentHint.substring(0, _charIndex);
           });
         } else {
-          // Pause at end of sentence
           timer.cancel();
           _timer = Timer(const Duration(milliseconds: 2500), () {
             if (mounted) {
@@ -467,7 +462,6 @@ class _TypewriterHintState extends State<_TypewriterHint> {
           _displayedHint = widget.hints[_currentHintIndex].substring(0, _charIndex);
         });
       } else {
-        // Move to next hint
         timer.cancel();
         setState(() {
           _currentHintIndex = (_currentHintIndex + 1) % widget.hints.length;
@@ -484,13 +478,14 @@ class _TypewriterHintState extends State<_TypewriterHint> {
   @override
   Widget build(BuildContext context) {
     if (widget.hints.isEmpty) return const SizedBox.shrink();
+    final c = context.colors;
     
     return RichText(
       text: TextSpan(
         style: AppTextStyles.bodyLarge.copyWith(
           color: widget.isFocused 
-            ? AppColors.textSecondary.withOpacity(0.5) 
-            : AppColors.textHint,
+            ? c.textHint 
+            : c.textHint.withValues(alpha: 0.7),
         ),
         children: [
           TextSpan(text: _displayedHint),
@@ -531,12 +526,14 @@ class _CursorAnimateState extends State<_CursorAnimate>
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+    final isDark = context.isDarkMode;
     return FadeTransition(
       opacity: _controller,
       child: Container(
         width: 2,
         height: 18,
-        color: AppColors.primary,
+        color: isDark ? c.primary : const Color(0xFF00664F),
         margin: const EdgeInsets.only(left: 2, bottom: 2),
       ),
     );

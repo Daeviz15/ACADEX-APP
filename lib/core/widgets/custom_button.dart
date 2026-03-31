@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:acadex/config/theme/app_colors.dart';
 import 'package:acadex/config/theme/app_text_styles.dart';
+import 'package:acadex/core/widgets/acadex_loader.dart';
 
 class CustomButton extends StatefulWidget {
   final String text;
@@ -82,10 +83,7 @@ class _CustomButtonState extends State<CustomButton> with SingleTickerProviderSt
                     ? SizedBox(
                         height: 24,
                         width: 24,
-                        child: CircularProgressIndicator(
-                          color: txt,
-                          strokeWidth: 2.5,
-                        ),
+                        child: AcadexLoader(size: 24),
                       )
                     : Text(
                         widget.text,

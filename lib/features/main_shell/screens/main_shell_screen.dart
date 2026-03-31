@@ -30,14 +30,14 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
   @override
   Widget build(BuildContext context) {
     final currentIndex = ref.watch(shellProvider);
+    final c = context.colors;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: c.background,
       body: IndexedStack(
         index: currentIndex,
         children: _screens,
       ),
-      // We align the custom nav bar to the bottom exactly.
       bottomNavigationBar: CurvedBottomNavBar(
         selectedIndex: currentIndex,
         onItemSelected: (index) {

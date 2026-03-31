@@ -1,0 +1,9 @@
+{
+  "executionEnvironments": [
+    {
+      "root": "acadex-backend",
+      "venv": "venv",
+      "venvPath": "acadex-backend"
+    }
+  ]
+}

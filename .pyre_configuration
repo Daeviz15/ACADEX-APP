@@ -1,0 +1,7 @@
+{
+  "site_package_search_strategy": "pep561",
+  "search_path": ["acadex-backend"],
+  "source_directories": ["acadex-backend"],
+  "python_version": "3.14",
+  "site_roots": ["acadex-backend/venv/Lib/site-packages"]
+}

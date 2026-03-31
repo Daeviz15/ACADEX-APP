@@ -9,11 +9,12 @@ class ChatHistorySidebar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.colors;
     final chatState = ref.watch(aiChatProvider);
     final sessions = chatState.sessions;
 
     return Drawer(
-      backgroundColor: AppColors.surface,
+      backgroundColor: c.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topRight: Radius.circular(24),
@@ -32,11 +33,11 @@ class ChatHistorySidebar extends ConsumerWidget {
                 children: [
                   Text(
                     'Chat History',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: AppTextStyles.montserrat,
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
+                      color: c.textPrimary,
                     ),
                   ),
                   IconButton(
@@ -47,12 +48,12 @@ class ChatHistorySidebar extends ConsumerWidget {
                     icon: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: c.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.add_rounded,
-                        color: AppColors.primary,
+                        color: c.primary,
                         size: 20,
                       ),
                     ),
@@ -65,7 +66,7 @@ class ChatHistorySidebar extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Divider(
-                color: AppColors.surfaceHighlight.withOpacity(0.5),
+                color: c.surfaceHighlight.withValues(alpha: 0.5),
                 height: 1,
               ),
             ),
@@ -82,13 +83,13 @@ class ChatHistorySidebar extends ConsumerWidget {
                           Icon(
                             Icons.chat_bubble_outline_rounded,
                             size: 48,
-                            color: AppColors.textSecondary.withOpacity(0.3),
+                            color: c.textSecondary.withValues(alpha: 0.3),
                           ),
                           const SizedBox(height: 12),
                           Text(
                             'No conversations yet',
                             style: AppTextStyles.bodyMedium.copyWith(
-                              color: AppColors.textSecondary,
+                              color: c.textSecondary,
                             ),
                           ),
                         ],
@@ -116,7 +117,7 @@ class ChatHistorySidebar extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(14),
                             ),
                             tileColor: isActive
-                                ? AppColors.primary.withOpacity(0.1)
+                                ? c.primary.withValues(alpha: 0.1)
                                 : Colors.transparent,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16,
@@ -126,9 +127,9 @@ class ChatHistorySidebar extends ConsumerWidget {
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color: isActive
-                                    ? AppColors.primary.withOpacity(0.15)
-                                    : AppColors.surfaceHighlight.withOpacity(
-                                        0.5,
+                                    ? c.primary.withValues(alpha: 0.15)
+                                    : c.surfaceHighlight.withValues(
+                                        alpha: 0.5,
                                       ),
                                 borderRadius: BorderRadius.circular(10),
                               ),
@@ -136,8 +137,8 @@ class ChatHistorySidebar extends ConsumerWidget {
                                 Icons.chat_rounded,
                                 size: 18,
                                 color: isActive
-                                    ? AppColors.primary
-                                    : AppColors.textSecondary,
+                                    ? c.primary
+                                    : c.textSecondary,
                               ),
                             ),
                             title: Text(
@@ -151,16 +152,16 @@ class ChatHistorySidebar extends ConsumerWidget {
                                     ? FontWeight.w700
                                     : FontWeight.w500,
                                 color: isActive
-                                    ? AppColors.textPrimary
-                                    : AppColors.textSecondary,
+                                    ? c.textPrimary
+                                    : c.textSecondary,
                               ),
                             ),
                             subtitle: Text(
                               _formatDate(session.createdAt),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: AppTextStyles.urbanist,
                                 fontSize: 11,
-                                color: AppColors.textHint,
+                                color: c.textHint,
                               ),
                             ),
                             trailing: IconButton(
@@ -172,7 +173,7 @@ class ChatHistorySidebar extends ConsumerWidget {
                               icon: Icon(
                                 Icons.delete_outline_rounded,
                                 size: 18,
-                                color: AppColors.textSecondary.withOpacity(0.5),
+                                color: c.textSecondary.withValues(alpha: 0.5),
                               ),
                             ),
                           ),

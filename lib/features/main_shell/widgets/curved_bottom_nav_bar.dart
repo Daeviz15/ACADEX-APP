@@ -26,7 +26,7 @@ class _CurvedBottomNavBarState extends State<CurvedBottomNavBar>
     Icons.auto_awesome_rounded,
     Icons.menu_book_rounded,
     Icons.emoji_events_rounded,
-    Icons.account_balance_wallet_rounded,
+    Icons.person_rounded,
   ];
 
   @override
@@ -70,6 +70,8 @@ class _CurvedBottomNavBarState extends State<CurvedBottomNavBar>
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+
     return Container(
       color: Colors.transparent,
       height: 90,
@@ -80,13 +82,14 @@ class _CurvedBottomNavBarState extends State<CurvedBottomNavBar>
             painter: _CurvedNavBarPainter(
               currentIndex: _animation.value,
               itemCount: _icons.length,
+              barColor: c.surface,
+              isDark: context.isDarkMode,
             ),
             child: SizedBox(
               height: 90,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
-             
                   Positioned(
                     top: 12,
                     left: _getDotPosition(
@@ -97,8 +100,8 @@ class _CurvedBottomNavBarState extends State<CurvedBottomNavBar>
                     child: Container(
                       width: 8,
                       height: 8,
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary,
+                      decoration: BoxDecoration(
+                        color: c.primary,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -110,7 +113,6 @@ class _CurvedBottomNavBarState extends State<CurvedBottomNavBar>
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: List.generate(_icons.length, (index) {
                       final isSelected = widget.selectedIndex == index;
-                      // Determine the progress of the notch moving past this item
                       final distance = (_animation.value - index).abs();
                       final yOffset = distance < 0.5 ? (1 - distance * 2) * 8 : 0.0;
 
@@ -119,15 +121,15 @@ class _CurvedBottomNavBarState extends State<CurvedBottomNavBar>
                           behavior: HitTestBehavior.opaque,
                           onTap: () => widget.onItemSelected(index),
                           child: Container(
-                            height: 70, // Height of the actual bar part
+                            height: 70,
                             alignment: Alignment.center,
                             child: Transform.translate(
                               offset: Offset(0, yOffset.toDouble()),
                               child: Icon(
                                 _icons[index],
                                 color: isSelected
-                                    ? AppColors.primary
-                                    : AppColors.textSecondary.withOpacity(0.5),
+                                    ? c.primary
+                                    : c.textSecondary.withValues(alpha: 0.5),
                                 size: isSelected ? 28 : 24,
                               ),
                             ),
@@ -146,31 +148,33 @@ class _CurvedBottomNavBarState extends State<CurvedBottomNavBar>
   }
 
   double _getDotPosition(BuildContext context, double index, int count) {
-    // Calculate exact X position for the floating dot to remain centered over the notch
     final screenWidth = MediaQuery.of(context).size.width;
     final itemWidth = screenWidth / count;
-    return (itemWidth * index) + (itemWidth / 2) - 4; // 4 is half the dot width
+    return (itemWidth * index) + (itemWidth / 2) - 4;
   }
 }
 
 class _CurvedNavBarPainter extends CustomPainter {
   final double currentIndex;
   final int itemCount;
+  final Color barColor;
+  final bool isDark;
 
   _CurvedNavBarPainter({
     required this.currentIndex,
     required this.itemCount,
+    required this.barColor,
+    required this.isDark,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.surface
+      ..color = barColor
       ..style = PaintingStyle.fill;
 
-    // We want to add a subtle shadow
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.2)
+      ..color = (isDark ? Colors.black : Colors.grey).withValues(alpha: 0.15)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
@@ -179,48 +183,39 @@ class _CurvedNavBarPainter extends CustomPainter {
     final itemWidth = size.width / itemCount;
     final centerPointX = (itemWidth * currentIndex) + (itemWidth / 2);
 
-    // Navigation bar geometry
     final curveDepth = 24.0;
-    final curveWidth = itemWidth * 0.8; // How wide the notch is
+    final curveWidth = itemWidth * 0.8;
 
-    // Start drawing from top-left, but pushed down by 20px
     path.moveTo(0, 20);
 
-    // Draw a straight line to the start of the curve
     if (centerPointX - curveWidth / 2 > 0) {
       path.lineTo(centerPointX - curveWidth / 2, 20);
     }
 
-    // Draw the downward curve (the notch) using bezier curves
     path.cubicTo(
-      centerPointX - curveWidth / 4, 20, // control point 1
-      centerPointX - curveWidth / 4, 20 + curveDepth, // control point 2
-      centerPointX, 20 + curveDepth, // end point (bottom of notch)
+      centerPointX - curveWidth / 4, 20,
+      centerPointX - curveWidth / 4, 20 + curveDepth,
+      centerPointX, 20 + curveDepth,
     );
 
-    // Draw the upward curve out of the notch
     path.cubicTo(
-      centerPointX + curveWidth / 4, 20 + curveDepth, // control point 1
-      centerPointX + curveWidth / 4, 20, // control point 2
-      centerPointX + curveWidth / 2, 20, // end point
+      centerPointX + curveWidth / 4, 20 + curveDepth,
+      centerPointX + curveWidth / 4, 20,
+      centerPointX + curveWidth / 2, 20,
     );
 
-    // Draw straight line to the right edge
     path.lineTo(size.width, 20);
-
-    // Draw down to bottom right, across to bottom left, and back up
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);
     path.close();
 
-    // Draw shadow first
     canvas.drawPath(path, shadowPaint);
-    // Draw the bar shape
     canvas.drawPath(path, paint);
   }
 
   @override
   bool shouldRepaint(covariant _CurvedNavBarPainter oldDelegate) {
-    return oldDelegate.currentIndex != currentIndex;
+    return oldDelegate.currentIndex != currentIndex ||
+        oldDelegate.barColor != barColor;
   }
 }

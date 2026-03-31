@@ -1,0 +1,7 @@
+{
+  "python.analysis.extraPaths": [
+    "c:\\Users\\USER\\Desktop\\HOUSe\\acadex\\acadex-backend"
+  ],
+  "python.defaultInterpreterPath": "c:\\Users\\USER\\Desktop\\HOUSe\\acadex\\acadex-backend\\venv\\Scripts\\python.exe",
+  "python.analysis.autoSearchPaths": true
+}

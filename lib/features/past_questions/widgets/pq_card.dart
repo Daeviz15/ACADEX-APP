@@ -12,6 +12,9 @@ class PqCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+    final isDark = context.isDarkMode;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
@@ -19,16 +22,26 @@ class PqCard extends StatelessWidget {
         child: InkWell(
           onTap: () => PqActionSheet.show(context, question: question),
           borderRadius: BorderRadius.circular(18),
-          splashColor: AppColors.primary.withValues(alpha: 0.08),
-          highlightColor: AppColors.primary.withValues(alpha: 0.04),
+          splashColor: c.primary.withValues(alpha: 0.08),
+          highlightColor: c.primary.withValues(alpha: 0.04),
           child: Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: isDark ? c.surface : Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: AppColors.surfaceHighlight.withValues(alpha: 0.3),
+              border: isDark ? Border.all(
+                color: c.surfaceHighlight.withValues(alpha: 0.3),
+              ) : Border.all(
+                color: Colors.white.withValues(alpha: 0.5),
+                width: 1.0,
               ),
+              boxShadow: isDark ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ] : null,
             ),
             child: Row(
               children: [
@@ -39,8 +52,8 @@ class PqCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        AppColors.primary,
-                        AppColors.primary.withValues(alpha: 0.3),
+                        isDark ? c.primary : const Color(0xFF00664F),
+                        (isDark ? c.primary : const Color(0xFF00664F)).withValues(alpha: 0.3),
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -61,7 +74,7 @@ class PqCard extends StatelessWidget {
                           fontFamily: AppTextStyles.hostGrotesk,
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.primary,
+                          color: isDark ? c.primary : const Color(0xFF4ADE80),
                           letterSpacing: 0.3,
                         ),
                       ),
@@ -71,6 +84,7 @@ class PqCard extends StatelessWidget {
                         style: AppTextStyles.bodyLarge.copyWith(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
+                          color: isDark ? c.textPrimary : Colors.white,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -93,16 +107,15 @@ class PqCard extends StatelessWidget {
                   ),
                 ),
 
-                // Chevron
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.08),
+                    color: (isDark ? c.primary : Colors.white).withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.chevron_right_rounded,
-                    color: AppColors.primary.withValues(alpha: 0.7),
+                    color: (isDark ? c.primary : Colors.white).withValues(alpha: 0.7),
                     size: 20,
                   ),
                 ),
@@ -125,22 +138,25 @@ class _MiniTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+    final isDark = context.isDarkMode;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: AppColors.surfaceHighlight.withValues(alpha: 0.4),
+        color: isDark ? c.surfaceHighlight.withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 10, color: AppColors.textHint),
+          Icon(icon, size: 10, color: isDark ? c.textHint : Colors.white.withValues(alpha: 0.7)),
           const SizedBox(width: 4),
           Text(
             label,
             style: AppTextStyles.bodySmall.copyWith(
               fontSize: 10,
-              color: AppColors.textSecondary,
+              color: isDark ? c.textSecondary : Colors.white.withValues(alpha: 0.9),
               fontWeight: FontWeight.w500,
             ),
           ),

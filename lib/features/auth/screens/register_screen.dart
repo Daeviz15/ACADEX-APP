@@ -8,14 +8,18 @@ import 'package:acadex/core/widgets/custom_button.dart';
 import 'package:acadex/core/widgets/custom_text_field.dart';
 import 'package:acadex/core/widgets/social_login_button.dart';
 
-class RegisterScreen extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/widgets/lottie_loading.dart';
+import '../providers/auth_provider.dart';
+
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -42,9 +46,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _handleRegister() {
-    // Navigate to OTP verification
-    context.push('/otp');
+  Future<void> _handleRegister() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final confirm = _confirmPasswordController.text;
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
+      return;
+    }
+    if (password != confirm) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Passwords do not match!')));
+      return;
+    }
+
+    try {
+      await ref.read(authNotifierProvider.notifier).register(name, email, password);
+      if (mounted) {
+        // Pass the email to the OTP screen!
+        context.push('/otp', extra: email);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          )
+        );
+      }
+    }
   }
 
   @override
@@ -183,12 +216,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       const SizedBox(height: 40),
 
-                      CustomButton(
-                        text: 'Create Account',
-                         backgroundColor: const Color(0xFF1B633E), // Match Login screen button style
-                        textColor: Colors.white,
-                        onPressed: _handleRegister,
-                      ).animate().fadeIn(delay: 750.ms).scale(begin: const Offset(0.95, 0.95)),
+                      // Sign Up Button -> Lottie Loader Check
+                      ref.watch(authNotifierProvider).isLoading
+                          ? const CustomLottieLoading(height: 60)
+                          : CustomButton(
+                              text: 'Create Account',
+                              backgroundColor: const Color(0xFF1B633E), // Match Login screen button style
+                              textColor: Colors.white,
+                              onPressed: _handleRegister,
+                            ).animate().fadeIn(delay: 750.ms).scale(begin: const Offset(0.95, 0.95)),
 
                       const SizedBox(height: 32),
 
@@ -214,7 +250,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         platform: 'Google',
                         iconPath: 'assets/icons/google.png',
                         isLightMode: true,
-                        onPressed: () {},
+                        onPressed: () {
+                          ref.read(authNotifierProvider.notifier).googleLogin();
+                        },
                       ).animate().fadeIn(delay: 900.ms).slideY(begin: 0.1),
 
                       const SizedBox(height: 32),

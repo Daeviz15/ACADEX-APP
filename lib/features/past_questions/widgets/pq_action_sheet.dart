@@ -23,11 +23,15 @@ class PqActionSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.colors;
+    final isDark = context.isDarkMode;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: c.background,
+        borderRadius:
+            const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -37,7 +41,7 @@ class PqActionSheet extends ConsumerWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: AppColors.surfaceHighlight,
+              color: c.surfaceHighlight,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -50,15 +54,15 @@ class PqActionSheet extends ConsumerWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.primary.withValues(alpha: 0.12),
-                  AppColors.primary.withValues(alpha: 0.04),
+                  (isDark ? c.primary : const Color(0xFF00664F)).withValues(alpha: 0.12),
+                  (isDark ? c.primary : const Color(0xFF00664F)).withValues(alpha: 0.04),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.2),
+                color: (isDark ? c.primary : const Color(0xFF00664F)).withValues(alpha: 0.2),
               ),
             ),
             child: Column(
@@ -70,7 +74,7 @@ class PqActionSheet extends ConsumerWidget {
                     fontFamily: AppTextStyles.hostGrotesk,
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.primary,
+                    color: isDark ? c.primary : const Color(0xFF00664F),
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -79,6 +83,7 @@ class PqActionSheet extends ConsumerWidget {
                   question.courseTitle,
                   style: AppTextStyles.bodyLarge.copyWith(
                     fontWeight: FontWeight.w600,
+                    color: c.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -107,9 +112,9 @@ class PqActionSheet extends ConsumerWidget {
                   content: Text(
                     'Download will be available after backend integration',
                     style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textPrimary),
+                        color: c.textPrimary),
                   ),
-                  backgroundColor: AppColors.surface,
+                  backgroundColor: c.surface,
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
@@ -153,16 +158,18 @@ class _InfoTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.surfaceHighlight.withValues(alpha: 0.5),
+        color: c.surfaceHighlight.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         label,
         style: AppTextStyles.bodySmall.copyWith(
-          color: AppColors.textSecondary,
+          color: c.textSecondary,
           fontWeight: FontWeight.w500,
           fontSize: 11,
         ),
@@ -190,6 +197,9 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+    final isDark = context.isDarkMode;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -198,10 +208,10 @@ class _ActionButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: c.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: AppColors.surfaceHighlight.withValues(alpha: 0.3),
+              color: c.surfaceHighlight.withValues(alpha: 0.3),
             ),
           ),
           child: Row(
@@ -209,10 +219,10 @@ class _ActionButton extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.12),
+                  color: (isDark ? c.primary : const Color(0xFF00664F)).withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: AppColors.primary, size: 22),
+                child: Icon(icon, color: isDark ? c.primary : const Color(0xFF00664F), size: 22),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -223,16 +233,22 @@ class _ActionButton extends StatelessWidget {
                       label,
                       style: AppTextStyles.bodyLarge.copyWith(
                         fontWeight: FontWeight.w700,
+                        color: c.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(subtitle, style: AppTextStyles.bodySmall),
+                    Text(
+                      subtitle,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: c.textSecondary,
+                      ),
+                    ),
                   ],
                 ),
               ),
               Icon(
                 Icons.chevron_right_rounded,
-                color: AppColors.primary.withValues(alpha: 0.6),
+                color: (isDark ? c.primary : const Color(0xFF00664F)).withValues(alpha: 0.6),
                 size: 22,
               ),
             ],

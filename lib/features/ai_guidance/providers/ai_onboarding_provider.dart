@@ -5,7 +5,9 @@ class AiOnboardingNotifier extends StateNotifier<bool> {
   AiOnboardingNotifier({bool initialCompleted = false}) : super(initialCompleted);
 
   static const _storageKey = 'ai_onboarding_completed';
-  final _storage = const FlutterSecureStorage();
+  final _storage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  );
 
   Future<void> completeOnboarding() async {
     await _storage.write(key: _storageKey, value: 'true');

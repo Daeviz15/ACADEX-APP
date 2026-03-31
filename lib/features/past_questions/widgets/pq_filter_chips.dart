@@ -151,6 +151,9 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+    final isDark = context.isDarkMode;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -161,24 +164,15 @@ class _FilterChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
             color: isActive
-                ? AppColors.primary.withValues(alpha: 0.12)
-                : AppColors.surface,
+                ? (isDark ? c.primary.withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.25))
+                : (isDark ? c.surface : Colors.white.withValues(alpha: 0.12)),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: isActive
-                  ? AppColors.primary
-                  : AppColors.surfaceHighlight.withValues(alpha: 0.4),
+                  ? (isDark ? c.primary : Colors.white.withValues(alpha: 0.8))
+                  : (isDark ? c.surfaceHighlight.withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.2)),
               width: isActive ? 1.5 : 1,
             ),
-            boxShadow: isActive
-                ? [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.15),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -186,13 +180,17 @@ class _FilterChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 14,
-                color: isActive ? AppColors.primary : AppColors.textSecondary,
+                color: isActive
+                    ? (isDark ? c.primary : Colors.white)
+                    : (isDark ? c.textSecondary : Colors.white.withValues(alpha: 0.7)),
               ),
               const SizedBox(width: 6),
               Text(
                 label,
                 style: AppTextStyles.bodySmall.copyWith(
-                  color: isActive ? AppColors.primary : AppColors.textSecondary,
+                  color: isActive
+                      ? (isDark ? c.primary : Colors.white)
+                      : (isDark ? c.textSecondary : Colors.white.withValues(alpha: 0.7)),
                   fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                   fontSize: 12,
                 ),
@@ -202,7 +200,7 @@ class _FilterChip extends StatelessWidget {
                 Icon(
                   Icons.close_rounded,
                   size: 12,
-                  color: AppColors.primary.withValues(alpha: 0.7),
+                  color: isDark ? c.primary.withValues(alpha: 0.7) : Colors.white.withValues(alpha: 0.7),
                 ),
               ],
             ],
@@ -232,11 +230,14 @@ class _PickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: c.background,
+        borderRadius:
+            const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -246,7 +247,7 @@ class _PickerSheet extends StatelessWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: AppColors.surfaceHighlight,
+              color: c.surfaceHighlight,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -256,7 +257,10 @@ class _PickerSheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: AppTextStyles.h3),
+              Text(
+                title,
+                style: AppTextStyles.h3.copyWith(color: c.textPrimary),
+              ),
               if (selected != null)
                 TextButton.icon(
                   onPressed: onClear,
@@ -293,13 +297,13 @@ class _PickerSheet extends StatelessWidget {
                         horizontal: 18, vertical: 14),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? AppColors.primary.withValues(alpha: 0.12)
-                          : AppColors.surface,
+                          ? c.primary.withValues(alpha: 0.12)
+                          : c.surface,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color: isSelected
-                            ? AppColors.primary
-                            : AppColors.surfaceHighlight.withValues(alpha: 0.3),
+                            ? c.primary
+                            : c.surfaceHighlight.withValues(alpha: 0.3),
                         width: isSelected ? 1.5 : 1,
                       ),
                     ),
@@ -313,15 +317,15 @@ class _PickerSheet extends StatelessWidget {
                                   ? FontWeight.w700
                                   : FontWeight.w500,
                               color: isSelected
-                                  ? AppColors.primary
-                                  : AppColors.textPrimary,
+                                  ? c.primary
+                                  : c.textPrimary,
                             ),
                           ),
                         ),
                         if (isSelected)
-                          const Icon(
+                          Icon(
                             Icons.check_circle_rounded,
-                            color: AppColors.primary,
+                            color: c.primary,
                             size: 20,
                           ),
                       ],

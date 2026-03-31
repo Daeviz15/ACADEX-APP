@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:acadex/config/theme/app_colors.dart';
 import 'package:acadex/config/theme/app_text_styles.dart';
+import 'package:acadex/core/storage/secure_storage.dart';
 import '../../onboarding/providers/onboarding_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -42,23 +43,45 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     // 1. Start drawing the "Acadex" text
     _textDrawController.forward();
 
-    // 2. Wait a bit, then fade in the surrounding elements (lottie hat, corners, tagline)
+    // 2. Wait a bit, then fade in the surrounding elements
     await Future.delayed(const Duration(milliseconds: 800));
     if (mounted) {
       _elementsFadeController.forward();
     }
 
-    // 3. Wait for all animations to finish and keep splash on screen to let users appreciate it
-    await Future.delayed(const Duration(milliseconds: 4200));
+    // ── OFFLINE-FIRST NAVIGATION ──
+    // We read ONLY local persistent flags. Zero network dependency.
+    // The AuthNotifier.init() is already running in the background
+    // (fired by the provider constructor) — it will silently refresh
+    // the user profile once the dashboard is live.
 
-    // 4. Navigate out
+    final secureStorage = ref.read(secureStorageProvider);
+
+    // Read local flags in parallel for speed
+    final results = await Future.wait([
+      secureStorage.getToken(),
+      secureStorage.hasEverLoggedIn(),
+    ]);
+
+    final hasToken = results[0] != null;
+    final hasEverLoggedIn = results[1] as bool;
+
+    // 3. Let the beautiful animations finish
+    await Future.delayed(const Duration(milliseconds: 3200));
+
+    // 4. Navigate based purely on local state — never blocked by server
+    // Priority: Auth > Onboarding > Login
+    // If user has ever logged in, they've already done onboarding — skip it always.
     if (mounted) {
-      // Check onboarding state to decide next route
-      final isCompleted = ref.read(onboardingProvider).isCompleted;
-      if (isCompleted) {
-        context.go('/login');
-      } else {
+      if (hasToken || hasEverLoggedIn) {
+        // User has logged in before — straight to dashboard!
+        context.go('/dashboard');
+      } else if (!ref.read(onboardingProvider).isCompleted) {
+        // Brand new install, never logged in — show onboarding
         context.go('/onboarding');
+      } else {
+        // Completed onboarding but never logged in
+        context.go('/login');
       }
     }
   }

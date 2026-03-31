@@ -78,7 +78,6 @@ class _DashSearchBarState extends ConsumerState<DashSearchBar> {
     _searchController.clear();
     ref.read(dashSearchQueryProvider.notifier).state = '';
 
-    // Handle routing depending on type
     if (result.type == 'service') {
       ServiceRequestSheet.show(
         context,
@@ -92,7 +91,6 @@ class _DashSearchBarState extends ConsumerState<DashSearchBar> {
         icon: result.icon,
       );
     } else if (result.type == 'nav') {
-      // Future routing: e.g. using go_router
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Navigating to ${result.title}...')),
       );
@@ -105,22 +103,24 @@ class _DashSearchBarState extends ConsumerState<DashSearchBar> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+
     return CompositedTransformTarget(
       link: _layerLink,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: c.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: _focusNode.hasFocus
-                ? AppColors.primary
-                : AppColors.surfaceHighlight.withOpacity(0.2),
+                ? c.primary
+                : c.surfaceHighlight.withValues(alpha: 0.3),
             width: 1,
           ),
           boxShadow: _focusNode.hasFocus
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: c.primary.withValues(alpha: 0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -130,23 +130,23 @@ class _DashSearchBarState extends ConsumerState<DashSearchBar> {
         child: TextField(
           controller: _searchController,
           focusNode: _focusNode,
-          style: AppTextStyles.bodyLarge,
+          style: AppTextStyles.bodyLarge.copyWith(color: c.textPrimary),
           decoration: InputDecoration(
             hintText: 'Search services, classes...',
             hintStyle: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.textSecondary.withOpacity(0.7),
+              color: c.textHint,
             ),
             prefixIcon: Icon(
               Icons.search_rounded,
               color: _focusNode.hasFocus
-                  ? AppColors.primary
-                  : AppColors.textSecondary.withOpacity(0.7),
+                  ? c.primary
+                  : c.textHint,
               size: 24,
             ),
             suffixIcon: _searchController.text.isNotEmpty
                 ? IconButton(
                     icon: const Icon(Icons.close_rounded, size: 20),
-                    color: AppColors.textSecondary,
+                    color: c.textSecondary,
                     onPressed: () {
                       _searchController.clear();
                       ref.read(dashSearchQueryProvider.notifier).state = '';
@@ -169,6 +169,7 @@ class _SearchResultsOverlay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.colors;
     final query = ref.watch(dashSearchQueryProvider);
     final results = ref.watch(dashSearchResultsProvider);
 
@@ -181,15 +182,16 @@ class _SearchResultsOverlay extends ConsumerWidget {
       child: Container(
         constraints: const BoxConstraints(maxHeight: 300),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: c.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: AppColors.surfaceHighlight.withOpacity(0.3),
+            color: c.surfaceHighlight.withValues(alpha: 0.3),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: (context.isDarkMode ? Colors.black : Colors.grey)
+                  .withValues(alpha: 0.2),
               blurRadius: 16,
               offset: const Offset(0, 8),
             ),
@@ -204,7 +206,7 @@ class _SearchResultsOverlay extends ConsumerWidget {
                     child: Text(
                       'No results found for "$query"',
                       style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
+                        color: c.textSecondary,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -227,13 +229,12 @@ class _SearchResultsOverlay extends ConsumerWidget {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: AppColors.surfaceHighlight
-                                    .withOpacity(0.5),
+                                color: c.primary.withValues(alpha: 0.08),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
                                 result.icon,
-                                color: AppColors.primary,
+                                color: c.primary,
                                 size: 18,
                               ),
                             ),
@@ -246,19 +247,22 @@ class _SearchResultsOverlay extends ConsumerWidget {
                                     result.title,
                                     style: AppTextStyles.bodyLarge.copyWith(
                                       fontWeight: FontWeight.w600,
+                                      color: c.textPrimary,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
                                     result.subtitle,
-                                    style: AppTextStyles.bodySmall,
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      color: c.textSecondary,
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
-                            const Icon(
+                            Icon(
                               Icons.chevron_right_rounded,
-                              color: AppColors.surfaceHighlight,
+                              color: c.textHint,
                               size: 20,
                             ),
                           ],

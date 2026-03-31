@@ -1,62 +1,111 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:acadex/config/theme/app_colors.dart';
 import 'package:acadex/config/theme/app_text_styles.dart';
+import 'package:acadex/core/widgets/acadex_skeleton.dart';
+import 'package:intl/intl.dart';
+import '../providers/dashboard_provider.dart';
+import '../models/dashboard_models.dart';
 
-class RecentActivityCard extends StatelessWidget {
+class RecentActivityCard extends ConsumerWidget {
   const RecentActivityCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.colors;
+    final dashboardAsync = ref.watch(dashboardSummaryProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 44),
         Text(
           'Recent Activity',
           style: AppTextStyles.h3.copyWith(
             fontWeight: FontWeight.w800,
+            color: c.textPrimary,
           ),
         ),
         const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: AppColors.surfaceHighlight.withOpacity(0.2),
-              width: 1,
+        dashboardAsync.when(
+          data: (data) => data.lastActivity != null
+              ? _buildActivityCard(context, c, data.lastActivity!)
+              : _buildEmptyState(context, c),
+          loading: () => const AcadexSkeleton(height: 120, width: double.infinity),
+          error: (_, __) => _buildEmptyState(context, c),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActivityCard(BuildContext context, AppColorScheme c, UserActivity activity) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: c.surfaceHighlight.withValues(alpha: 0.6),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (Theme.of(context).brightness == Brightness.dark
+                    ? Colors.black
+                    : c.primary)
+                .withValues(alpha: 0.06),
+            blurRadius: 24,
+            spreadRadius: -4,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -20,
+            bottom: -20,
+            child: Icon(
+              activity.icon,
+              size: 100,
+              color: c.primary.withValues(alpha: 0.03),
             ),
           ),
-          child: Row(
+          Row(
             children: [
-              // Activity Icon / Thumbnail
               Container(
-                width: 72,
-                height: 72,
+                width: 64,
+                height: 64,
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceHighlight.withOpacity(0.3),
+                  gradient: LinearGradient(
+                    colors: [
+                      c.primary.withValues(alpha: 0.1),
+                      c.primary.withValues(alpha: 0.02),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Center(
+                child: Center(
                   child: Icon(
-                    Icons.psychology_outlined,
-                    color: AppColors.primary,
-                    size: 36,
+                    activity.icon,
+                    color: c.primary,
+                    size: 32,
                   ),
                 ),
               ),
               const SizedBox(width: 16),
-              
-              // Activity Details
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'AI Chat: Thesis Structure',
+                      activity.title,
                       style: AppTextStyles.bodyLarge.copyWith(
                         fontWeight: FontWeight.w700,
+                        color: c.textPrimary,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -65,43 +114,43 @@ class RecentActivityCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          'In Progress',
+                          activity.statusText ?? 'Last action',
                           style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.textSecondary,
+                            color: c.textSecondary,
                           ),
                         ),
                         Text(
                           ' · ',
                           style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.textSecondary,
+                            color: c.textSecondary,
                           ),
                         ),
                         Text(
-                          '12m spent',
+                          DateFormat('hh:mm a').format(activity.createdAt),
                           style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.primary.withOpacity(0.8),
+                            color: c.primary.withValues(alpha: 0.8),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    
-                    // Progress Bar
                     Row(
                       children: [
                         Expanded(
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(4),
-                            child: const LinearProgressIndicator(
-                              value: 0.65, // 65% complete
-                              backgroundColor: AppColors.surfaceHighlight,
-                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                            child: LinearProgressIndicator(
+                              value: activity.progress,
+                              backgroundColor: c.surfaceHighlight,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                c.primary,
+                              ),
                               minHeight: 4,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 32), // Padding to match the reference UI layout ratio
+                        const SizedBox(width: 32),
                       ],
                     ),
                   ],
@@ -109,8 +158,44 @@ class RecentActivityCard extends StatelessWidget {
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context, AppColorScheme c) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+      decoration: BoxDecoration(
+        color: c.surface.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: c.surfaceHighlight.withValues(alpha: 0.4),
+          style: BorderStyle.solid,
+          width: 1,
         ),
-      ],
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.history_toggle_off_rounded, color: c.textSecondary.withValues(alpha: 0.3), size: 48),
+          const SizedBox(height: 12),
+          Text(
+            'Your story begins here',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: c.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Complete an action to see it here.',
+            style: AppTextStyles.bodySmall.copyWith(
+              color: c.textSecondary.withValues(alpha: 0.6),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
