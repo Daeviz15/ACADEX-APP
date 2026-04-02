@@ -5,6 +5,8 @@ import 'package:acadex/config/theme/app_colors.dart';
 import 'package:acadex/config/theme/app_text_styles.dart';
 import '../../main_shell/providers/shell_provider.dart';
 import '../data/models/past_question.dart';
+import '../screens/pq_viewer_screen.dart';
+import '../screens/pq_quiz_screen.dart';
 
 class PqActionSheet extends ConsumerWidget {
   final PastQuestion question;
@@ -89,9 +91,11 @@ class PqActionSheet extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    _InfoTag(label: question.year),
-                    const SizedBox(width: 8),
-                    _InfoTag(label: question.semester),
+                    _InfoTag(label: question.displayYear),
+                    if (question.semester != null) ...[
+                      const SizedBox(width: 8),
+                      _InfoTag(label: '${question.semester} Semester'),
+                    ],
                   ],
                 ),
               ],
@@ -101,23 +105,16 @@ class PqActionSheet extends ConsumerWidget {
 
           // Action buttons
           _ActionButton(
-            icon: Icons.download_rounded,
-            label: 'Download PDF',
-            subtitle: 'Save to your device',
+            icon: Icons.visibility_rounded,
+            label: 'View Question',
+            subtitle: 'Read the exam paper',
             delay: 0,
             onTap: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Download will be available after backend integration',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                        color: c.textPrimary),
-                  ),
-                  backgroundColor: c.surface,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+              Navigator.pop(context); // Close the bottom sheet
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PqViewerScreen(question: question),
                 ),
               );
             },
@@ -127,7 +124,7 @@ class PqActionSheet extends ConsumerWidget {
             icon: Icons.auto_awesome_rounded,
             label: 'Study with AI',
             subtitle: 'Get AI-powered explanations',
-            delay: 80,
+            delay: 40,
             onTap: () {
               Navigator.pop(context);
               ref.read(shellProvider.notifier).state = 1;
@@ -138,10 +135,15 @@ class PqActionSheet extends ConsumerWidget {
             icon: Icons.emoji_events_rounded,
             label: 'Take a Quiz',
             subtitle: 'Test your knowledge',
-            delay: 160,
+            delay: 80,
             onTap: () {
               Navigator.pop(context);
-              ref.read(shellProvider.notifier).state = 3;
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PqQuizScreen(question: question),
+                ),
+              );
             },
           ),
         ],

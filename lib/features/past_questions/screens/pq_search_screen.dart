@@ -11,6 +11,7 @@ import 'package:acadex/core/widgets/feature_discovery/feature_discovery.dart';
 import '../providers/pq_provider.dart';
 import '../widgets/pq_filter_chips.dart';
 import '../widgets/pq_card.dart';
+import 'package:acadex/core/widgets/acadex_loader.dart';
 
 class PqSearchScreen extends ConsumerStatefulWidget {
   const PqSearchScreen({super.key});
@@ -24,6 +25,7 @@ class _PqSearchScreenState extends ConsumerState<PqSearchScreen>
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   late final AnimationController _emptyLottieController;
+  Timer? _debounce;
 
   final GlobalKey _searchKey = GlobalKey();
   final GlobalKey _filtersKey = GlobalKey();
@@ -69,7 +71,14 @@ class _PqSearchScreenState extends ConsumerState<PqSearchScreen>
   }
 
   void _onSearchChanged() {
+    // Immediate update for UI clears
     ref.read(pqSearchQueryProvider.notifier).state = _searchController.text;
+    
+    // Debounce actual API request provider
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      ref.read(debouncedPqSearchQueryProvider.notifier).state = _searchController.text;
+    });
   }
 
   @override
@@ -78,6 +87,7 @@ class _PqSearchScreenState extends ConsumerState<PqSearchScreen>
     _searchController.dispose();
     _searchFocusNode.dispose();
     _emptyLottieController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -87,6 +97,7 @@ class _PqSearchScreenState extends ConsumerState<PqSearchScreen>
     ref.read(pqLevelFilterProvider.notifier).state = null;
     ref.read(pqSemesterFilterProvider.notifier).state = null;
     ref.read(pqSearchQueryProvider.notifier).state = '';
+    ref.read(debouncedPqSearchQueryProvider.notifier).state = '';
     _searchController.clear();
   }
 
@@ -94,7 +105,7 @@ class _PqSearchScreenState extends ConsumerState<PqSearchScreen>
   Widget build(BuildContext context) {
     final c = context.colors;
     final isDark = context.isDarkMode;
-    final results = ref.watch(filteredPastQuestionsProvider);
+    final resultsAsync = ref.watch(pastQuestionsProvider);
     final hasFilters = ref.watch(pqHasActiveFiltersProvider);
     final isFocused = _searchFocusNode.hasFocus;
 
@@ -258,7 +269,11 @@ class _PqSearchScreenState extends ConsumerState<PqSearchScreen>
                       vertical: 8,
                     ),
                     child: Text(
-                      '${results.length} result${results.length != 1 ? 's' : ''} found',
+                      resultsAsync.when(
+                        data: (results) => '${results.length} result${results.length != 1 ? 's' : ''} found',
+                        loading: () => 'Loading results...',
+                        error: (_, __) => 'Error loading results',
+                      ),
                       style: AppTextStyles.bodySmall.copyWith(
                         color: isDark ? c.textHint : Colors.white.withValues(alpha: 0.6),
                         fontWeight: FontWeight.w600,
@@ -266,13 +281,24 @@ class _PqSearchScreenState extends ConsumerState<PqSearchScreen>
                     ),
                   ),
 
-                  // ── Results List / Empty State ──
+                  // ── Results List / Empty State / Loading ──
                   Expanded(
-                    child: results.isEmpty
-                        ? _buildEmptyState(c)
-                        : ListView.builder(
+                    child: resultsAsync.when(
+                      data: (results) {
+                        if (results.isEmpty) return _buildEmptyState(c);
+                        
+                        return AcadexRefreshIndicator(
+                          onRefresh: () async {
+                            // Invalidate the provider to re-fetch the data
+                            ref.invalidate(pastQuestionsProvider);
+                            // Also optionally refresh the filters
+                            ref.invalidate(pqFilterOptionsProvider);
+                            // Wait a short delay so the animation feels complete
+                            await Future.delayed(const Duration(milliseconds: 500));
+                          },
+                          child: ListView.builder(
                             padding: const EdgeInsets.fromLTRB(24, 4, 24, 100),
-                            physics: const BouncingScrollPhysics(),
+                            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                             itemCount: results.length,
                             itemBuilder: (context, index) {
                               return PqCard(
@@ -295,6 +321,19 @@ class _PqSearchScreenState extends ConsumerState<PqSearchScreen>
                                   );
                             },
                           ),
+                        );
+                      },
+                      loading: () => const Center(
+                        child: AcadexLoader(size: 80),
+                      ),
+                      error: (err, stack) => Center(
+                        child: Text(
+                          'Oops! Something went wrong:\n${err.toString()}',
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),

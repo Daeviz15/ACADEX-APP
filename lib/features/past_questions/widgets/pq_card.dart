@@ -93,14 +93,16 @@ class PqCard extends StatelessWidget {
                       Row(
                         children: [
                           _MiniTag(
-                            label: question.year,
+                            label: question.displayYear,
                             icon: Icons.calendar_today_rounded,
                           ),
-                          const SizedBox(width: 8),
-                          _MiniTag(
-                            label: question.semester,
-                            icon: Icons.view_agenda_rounded,
-                          ),
+                          if (question.semester != null) ...[
+                            const SizedBox(width: 8),
+                            _MiniTag(
+                              label: '${question.semester} Semester',
+                              icon: Icons.view_agenda_rounded,
+                            ),
+                          ],
                         ],
                       ),
                     ],

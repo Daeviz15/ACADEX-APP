@@ -35,12 +35,14 @@ class QuizQuestion(Base):
     __tablename__ = "quiz_questions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    category_id = Column(UUID(as_uuid=True), ForeignKey("quiz_categories.id", ondelete="CASCADE"), nullable=False, index=True)
+    category_id = Column(UUID(as_uuid=True), ForeignKey("quiz_categories.id", ondelete="CASCADE"), nullable=True, index=True)
+    past_question_id = Column(UUID(as_uuid=True), ForeignKey("past_questions.id", ondelete="CASCADE"), nullable=True, index=True)
     question_text = Column(Text, nullable=False)
     options = Column(JSONB, nullable=False)     # ["A", "B", "C", "D"]
-    correct_answer = Column(String(10), nullable=False)
+    correct_answer = Column(Text, nullable=False)  # Text to support long theory
     explanation = Column(Text, nullable=True)
     difficulty = Column(String(20), default="medium")  # easy, medium, hard
+    question_type = Column(String(20), default="objective", nullable=False)  # objective, theory
 
     category = relationship("QuizCategory", back_populates="questions")
 

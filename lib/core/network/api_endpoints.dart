@@ -23,4 +23,11 @@ class ApiEndpoints {
   static const String dashboardSummary = '/dashboard/summary';
   static const String recommendedServices = '/services/recommended';
   static const String logActivity = '/dashboard/activity';
+
+  // Past Questions
+  static const String pastQuestions = '/past-questions';
+  static const String pastQuestionFilters = '/past-questions/filters';
+  static String pastQuestionQuiz(String id) => '/past-questions/$id/quiz';
+  static String generateQuiz(String id) => '/past-questions/$id/generate-quiz';
+  static const String gradeTheory = '/past-questions/grade-theory';
 }

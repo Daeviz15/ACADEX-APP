@@ -26,6 +26,12 @@ class Settings(BaseSettings):
     FROM_EMAIL: str
     FROM_NAME: str = "Acadex Team"
     GOOGLE_CLIENT_ID: str
+    OPENAI_API_KEY: str
+
+    # CLOUDINARY
+    CLOUDINARY_CLOUD_NAME: str
+    CLOUDINARY_API_KEY: str
+    CLOUDINARY_API_SECRET: str
     
     @property
     def async_database_url(self) -> str:

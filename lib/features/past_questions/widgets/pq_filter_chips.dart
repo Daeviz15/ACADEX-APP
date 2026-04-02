@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:acadex/config/theme/app_colors.dart';
 import 'package:acadex/config/theme/app_text_styles.dart';
 import '../providers/pq_provider.dart';
-import '../data/mock_past_questions.dart';
+import '../providers/pq_provider.dart';
 
 class PqFilterChips extends ConsumerWidget {
   const PqFilterChips({super.key});
@@ -14,6 +14,9 @@ class PqFilterChips extends ConsumerWidget {
     final selectedDept = ref.watch(pqDeptFilterProvider);
     final selectedLevel = ref.watch(pqLevelFilterProvider);
     final selectedSemester = ref.watch(pqSemesterFilterProvider);
+    
+    final filterOptionsAsync = ref.watch(pqFilterOptionsProvider);
+    final options = filterOptionsAsync.valueOrNull;
 
     return SizedBox(
       height: 42,
@@ -28,7 +31,7 @@ class PqFilterChips extends ConsumerWidget {
             onTap: () => _showPicker(
               context,
               title: 'Select Year',
-              options: availableYears,
+              options: options?.years ?? [],
               selected: selectedYear,
               onSelected: (val) =>
                   ref.read(pqYearFilterProvider.notifier).state = val,
@@ -42,7 +45,7 @@ class PqFilterChips extends ConsumerWidget {
             onTap: () => _showPicker(
               context,
               title: 'Select Department',
-              options: availableDepartments,
+              options: options?.departments ?? [],
               selected: selectedDept,
               onSelected: (val) =>
                   ref.read(pqDeptFilterProvider.notifier).state = val,
@@ -55,6 +58,7 @@ class PqFilterChips extends ConsumerWidget {
             icon: Icons.trending_up_rounded,
             onTap: () => _showLevelPicker(
               context,
+              options: options?.levels ?? [],
               selected: selectedLevel,
               onSelected: (val) =>
                   ref.read(pqLevelFilterProvider.notifier).state = val,
@@ -68,7 +72,7 @@ class PqFilterChips extends ConsumerWidget {
             onTap: () => _showPicker(
               context,
               title: 'Select Semester',
-              options: availableSemesters,
+              options: options?.semesters ?? [],
               selected: selectedSemester,
               onSelected: (val) =>
                   ref.read(pqSemesterFilterProvider.notifier).state = val,
@@ -108,6 +112,7 @@ class PqFilterChips extends ConsumerWidget {
 
   void _showLevelPicker(
     BuildContext context, {
+    required List<int> options,
     required int? selected,
     required ValueChanged<int?> onSelected,
   }) {
@@ -116,7 +121,7 @@ class PqFilterChips extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => _PickerSheet(
         title: 'Select Level',
-        options: availableLevels.map((l) => '$l Level').toList(),
+        options: options.map((l) => '$l Level').toList(),
         selected: selected != null ? '$selected Level' : null,
         onSelected: (val) {
           if (val != null) {
@@ -281,60 +286,67 @@ class _PickerSheet extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Options
-          ...options.map((option) {
-            final isSelected = option == selected;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => onSelected(option),
-                  borderRadius: BorderRadius.circular(14),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 18, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? c.primary.withValues(alpha: 0.12)
-                          : c.surface,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: isSelected
-                            ? c.primary
-                            : c.surfaceHighlight.withValues(alpha: 0.3),
-                        width: isSelected ? 1.5 : 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            option,
-                            style: AppTextStyles.bodyLarge.copyWith(
-                              fontWeight: isSelected
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
+          Flexible(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                children: options.map((option) {
+                  final isSelected = option == selected;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => onSelected(option),
+                        borderRadius: BorderRadius.circular(14),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 18, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? c.primary.withValues(alpha: 0.12)
+                                : c.surface,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
                               color: isSelected
                                   ? c.primary
-                                  : c.textPrimary,
+                                  : c.surfaceHighlight.withValues(alpha: 0.3),
+                              width: isSelected ? 1.5 : 1,
                             ),
                           ),
-                        ),
-                        if (isSelected)
-                          Icon(
-                            Icons.check_circle_rounded,
-                            color: c.primary,
-                            size: 20,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  option,
+                                  style: AppTextStyles.bodyLarge.copyWith(
+                                    fontWeight: isSelected
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: isSelected
+                                        ? c.primary
+                                        : c.textPrimary,
+                                  ),
+                                ),
+                              ),
+                              if (isSelected)
+                                Icon(
+                                  Icons.check_circle_rounded,
+                                  color: c.primary,
+                                  size: 20,
+                                ),
+                            ],
                           ),
-                      ],
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                }).toList(),
               ),
-            );
-          }),
+            ),
+          ),
         ],
       ),
     );

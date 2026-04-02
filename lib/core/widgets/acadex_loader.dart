@@ -43,7 +43,7 @@ class _AcadexLoaderState extends State<AcadexLoader>
       width: widget.size,
       height: widget.size,
       child: Lottie.asset(
-        'assets/lottie/loader.json',
+        'assets/lottie/allLoad.json',
         controller: _controller,
         onLoaded: (composition) {
           _controller.duration = composition.duration;
