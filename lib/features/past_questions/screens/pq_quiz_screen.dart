@@ -420,6 +420,8 @@ class _PqQuizScreenState extends ConsumerState<PqQuizScreen> {
       );
     } else {
       setState(() => _quizFinished = true);
+      // Clear persistence since user naturally completed the quiz
+      ref.read(quizProgressServiceProvider).clearProgress(widget.question.id);
     }
   }
 
